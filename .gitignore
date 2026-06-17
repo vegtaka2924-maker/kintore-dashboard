@@ -1,0 +1,31 @@
+# ===== 安全第一：既定で全部Git管理外にする（健康データを絶対に出さない） =====
+/*
+
+# ↓ ここに明示したものだけをGitに含める（アプリのコードのみ）
+!/.gitignore
+!/README.md
+!/DEPLOY.md
+!/docs/
+!/src/
+!/dashboard.html
+!/manifest.webmanifest
+!/sw.js
+!/server.cjs
+!/gen-sw.cjs
+!/build-deploy.cjs
+!/start-gym.cmd
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/tests/
+
+# テストのfixtureは実測のInBody値（健康データ）。絶対に出さない。
+/tests/fixtures/
+
+# 以下は念のための明示（上の /* で既に無視されるが、二重の歯止め）
+/InBodyデータ/
+/exports/
+/node_modules/
+/deploy/
+*.csv
+gym-data-*.json

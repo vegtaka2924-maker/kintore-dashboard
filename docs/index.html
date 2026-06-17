@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B0F14">
+<title>筋トレ ダッシュボード</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#0B0F14; --surface:#161B22; --surface2:#1A2029; --border:#232A34;
+  --text:#E6EDF3; --muted:#8B98A5;
+  --lime:#B6F500; --amber:#FFB020; --cyan:#3DD6D0;
+  --up:#3FB950; --down:#F85149;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;
+  -webkit-font-smoothing:antialiased; padding:0 0 96px;
+  font-variant-numeric:tabular-nums;
+}
+.num{font-variant-numeric:tabular-nums}
+a{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+
+/* Header */
+header.appbar{
+  position:sticky;top:0;z-index:30;background:rgba(11,15,20,.85);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);
+}
+.appbar .wrap{display:flex;align-items:center;justify-content:space-between;height:56px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.04em}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
+.brand small{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:0}
+.streak{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.streak b{color:var(--lime)}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card:hover{border-color:#2c3440}
+.card h2{margin:0 0 4px;font-size:15px;letter-spacing:.02em}
+.card .sub{color:var(--muted);font-size:12px;margin-bottom:14px}
+section{margin-top:24px}
+
+/* Today inline input */
+#today{
+  background:linear-gradient(180deg,#16201a,#161B22);
+  border:1px solid #25341f;margin-top:16px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap
+}
+#today .lab{font-size:13px;color:var(--muted)}
+#today .lab b{display:block;color:var(--text);font-size:15px;margin-top:2px}
+.weighin{display:flex;align-items:center;gap:10px}
+.stepbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:20px;cursor:pointer;line-height:1}
+.stepbtn:active{transform:scale(.94)}
+#wInput{width:120px;text-align:center;font-size:30px;font-weight:800;background:transparent;border:none;color:var(--text);font-variant-numeric:tabular-nums}
+#wInput:focus{outline:none}
+.unit{color:var(--muted);font-size:14px}
+.savebtn{height:42px;padding:0 18px;border-radius:12px;border:none;background:var(--lime);color:#0b1400;font-weight:800;cursor:pointer}
+.savebtn:active{transform:scale(.97)}
+.saved{color:var(--lime);font-weight:700;font-size:14px}
+
+/* Hero */
+#hero .goalrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.bignum{font-size:52px;font-weight:800;line-height:1;text-shadow:0 0 18px rgba(182,245,0,.25)}
+.bignum .u{font-size:18px;color:var(--muted);font-weight:600;margin-left:4px}
+.delta{font-size:14px;font-weight:700}
+.delta.up{color:var(--up)} .delta.down{color:var(--down)} .delta.flat{color:var(--muted)}
+.progress{height:14px;border-radius:99px;background:#0e1620;border:1px solid var(--border);position:relative;overflow:hidden;margin-top:16px}
+.progress .fill{height:100%;background:linear-gradient(90deg,#7bbf00,var(--lime));box-shadow:0 0 12px rgba(182,245,0,.5)}
+.miles{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:6px}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi .klab{color:var(--muted);font-size:12px}
+.kpi .kval{font-size:28px;font-weight:800;margin:6px 0 2px}
+.kpi .kval .u{font-size:13px;color:var(--muted);font-weight:600;margin-left:3px}
+.kpi.mus .kval{color:var(--lime)}
+.kpi.fat .kval{color:var(--amber)}
+.kpi .spark{height:30px;margin-top:6px}
+
+/* Charts */
+.chart{width:100%;height:300px}
+.chart.sm{height:240px}
+.range{display:flex;gap:6px;flex-wrap:wrap}
+.range button{font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer}
+.range button.on{background:var(--lime);color:#0b1400;border-color:var(--lime);font-weight:700}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.empty{color:var(--muted);font-size:13px;padding:30px 10px;text-align:center;border:1px dashed var(--border);border-radius:12px}
+
+/* Regimes */
+.regrow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.regrow:last-child{border-bottom:none}
+.tag{font-size:11px;color:var(--lime);border:1px solid #2c3a16;background:#161f0a;border-radius:99px;padding:2px 8px}
+
+/* Inputs / forms */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:12px;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],select{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);
+  padding:10px 12px;font-size:15px;font-family:inherit
+}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.btn{height:42px;padding:0 16px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-weight:700;cursor:pointer}
+.btn.primary{background:var(--lime);color:#0b1400;border-color:var(--lime)}
+.btn:active{transform:scale(.97)}
+.setline{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.setline .si{width:30px;color:var(--muted);font-size:13px}
+.alert{color:var(--amber);font-size:12px;margin-top:4px}
+.drop{border:1px dashed var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--muted);cursor:pointer}
+.drop.hot{border-color:var(--lime);color:var(--lime)}
+.muted{color:var(--muted)} .small{font-size:12px}
+.hint{color:var(--muted);font-size:11px}
+
+/* FAB */
+.fab{position:fixed;right:18px;bottom:18px;z-index:40;height:54px;padding:0 20px;border-radius:99px;border:none;
+  background:var(--lime);color:#0b1400;font-weight:800;font-size:15px;cursor:pointer;
+  box-shadow:0 8px 24px rgba(182,245,0,.3)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#0e1620;border:1px solid var(--lime);
+  color:var(--text);padding:10px 16px;border-radius:10px;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.show{opacity:1}
+
+@media(max-width:720px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+  .bignum{font-size:42px}
+}
+</style>
+</head>
+<body>
+
+<header class="appbar"><div class="wrap">
+  <div class="brand"><span class="dot"></span>GAINS <small>筋トレ ダッシュボード</small></div>
+  <div class="streak">
+    <span>体重 <b id="stWeight">–</b>%</span>
+    <span>トレ <b id="stTrain">–</b>/週</span>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+  <!-- ⓪ Today inline -->
+  <div class="card" id="today">
+    <div class="lab">今日の体重 <span class="muted small" id="todayDate"></span><b id="todayState">未記録</b></div>
+    <div class="weighin">
+      <button class="stepbtn" id="wMinus">−</button>
+      <div><input id="wInput" class="num" type="number" step="0.1" inputmode="decimal" value="80.0"><span class="unit">kg</span></div>
+      <button class="stepbtn" id="wPlus">＋</button>
+      <button class="savebtn" id="wSave">記録</button>
+    </div>
+  </div>
+
+  <!-- ① Hero -->
+  <section class="card" id="hero">
+    <h2>ガチムチへの進捗</h2>
+    <div class="sub" id="heroSub">中間目標への進捗</div>
+    <div class="goalrow">
+      <div>
+        <div class="bignum num"><span id="heroW">–</span><span class="u">kg</span></div>
+        <div class="delta flat" id="heroDelta">7日平均 –</div>
+      </div>
+      <div style="text-align:right">
+        <div class="muted small">骨格筋量</div>
+        <div style="font-size:24px;font-weight:800;color:var(--lime)" class="num"><span id="heroSmm">–</span><span class="u" style="font-size:13px;color:var(--muted)">kg</span></div>
+      </div>
+    </div>
+    <div class="progress"><div class="fill" id="heroFill" style="width:0%"></div></div>
+    <div class="miles" id="heroMiles"><span>現在</span><span>四半期目標</span></div>
+  </section>
+
+  <!-- ② KPIs -->
+  <section class="kpis">
+    <div class="card kpi"><div class="klab">体重 (7日平均)</div><div class="kval num"><span id="kW">–</span><span class="u">kg</span></div><div class="delta flat small" id="kWd">前週比 –</div><div class="spark" id="spW"></div></div>
+    <div class="card kpi mus"><div class="klab">骨格筋量</div><div class="kval num"><span id="kM">–</span><span class="u">kg</span></div><div class="delta flat small" id="kMd">前回比 –</div><div class="spark" id="spM"></div></div>
+    <div class="card kpi fat"><div class="klab">体脂肪率</div><div class="kval num"><span id="kF">–</span><span class="u">%</span></div><div class="delta flat small" id="kFd">前回比 –</div><div class="spark" id="spF"></div></div>
+    <div class="card kpi"><div class="klab">継続</div><div class="kval num"><span id="kC">–</span></div><div class="delta flat small" id="kCd">&nbsp;</div><div class="spark" id="spC"></div></div>
+  </section>
+
+  <!-- ③ Weight trend -->
+  <section class="card">
+    <div class="toolbar">
+      <div><h2 style="display:inline">体重トレンド</h2> <span class="hint">生値は水分でブレます。太線(7日平均)で判断を。</span></div>
+      <div class="range" id="wRange">
+        <button data-d="30">1M</button><button data-d="90" class="on">3M</button><button data-d="180">6M</button><button data-d="365">1Y</button><button data-d="0">全</button>
+        <button data-mode="median" id="medBtn" title="外れ値に強い7日中央値">中央値</button>
+      </div>
+    </div>
+    <div class="chart" id="cWeight"></div>
+  </section>
+
+  <!-- ④ Body composition -->
+  <section class="card">
+    <h2>体組成の中身</h2>
+    <div class="sub">増えた体重のうち、どれが<span style="color:var(--lime)">筋肉</span>でどれが<span style="color:var(--amber)">脂肪</span>か（月1 InBody）</div>
+    <div class="chart" id="cComp"></div>
+    <div class="empty" id="compEmpty" style="display:none">InBodyデータを取り込むと表示されます（⑧から取込）。</div>
+  </section>
+
+  <!-- ⑤ Segmental -->
+  <section class="card">
+    <h2>部位別バランス</h2>
+    <div class="sub">全身比(%)とL-R比。差5%超で警告。<span id="lrNote" class="muted"></span></div>
+    <div class="grid2">
+      <div class="chart sm" id="cRadar"></div>
+      <div id="lrBox"></div>
+    </div>
+    <div class="empty" id="segEmpty" style="display:none">部位別データのある測定（新しめのInBody機種）が必要です。</div>
+  </section>
+
+  <!-- ⑥ Training -->
+  <section class="card">
+    <div class="toolbar"><h2 style="display:inline">トレーニング</h2><span class="hint">推定1RMは6回以下が最も正確（reps≤12のみ採用）</span></div>
+    <div class="field" style="max-width:280px">
+      <label>種目を選んで推定1RM推移</label>
+      <select id="exSelect"></select>
+    </div>
+    <div class="chart sm" id="c1rm"></div>
+    <div class="grid2" style="margin-top:8px">
+      <div><div class="sub">週間ボリューム（筋群別セット数）</div><div class="chart sm" id="cVol"></div></div>
+      <div><div class="sub">継続ヒートマップ（トレ実施日）</div><div class="chart sm" id="cHeat"></div></div>
+    </div>
+    <div class="empty" id="trainEmpty" style="display:none">トレ記録を入力すると表示されます（⑧から入力）。</div>
+  </section>
+
+  <!-- ⑦ Regimes -->
+  <section class="card">
+    <h2>レジーム（サプリ等）</h2>
+    <div id="regList"></div>
+    <div class="row" style="margin-top:12px">
+      <div class="field"><label>名称</label><input id="regName" type="text" placeholder="クレアチン"></div>
+      <div class="field"><label>用量</label><input id="regDose" type="text" placeholder="5g/日"></div>
+      <div class="field"><label>開始日</label><input id="regDate" type="date"></div>
+      <button class="btn" id="regAdd">追加</button>
+    </div>
+  </section>
+
+  <!-- ⑧ Input / data -->
+  <section class="card">
+    <h2>記録入力 ・ データ保全</h2>
+
+    <h3 style="margin:16px 0 8px;font-size:14px">トレ記録</h3>
+    <div class="row">
+      <div class="field"><label>日付</label><input id="wkDate" type="date"></div>
+      <div class="field"><label>種目</label><input id="wkEx" type="text" list="exList" placeholder="ベンチプレス"><datalist id="exList"></datalist></div>
+      <button class="btn" id="wkClone" title="前回の同種目セットを複製">前回を複製</button>
+    </div>
+    <div id="setRows"></div>
+    <button class="btn" id="addSet">＋ セット追加</button>
+    <button class="btn" id="addSameSet">＋ 同値セット</button>
+    <div class="field" style="margin-top:12px"><label>メモ</label><input id="wkNote" type="text" placeholder="可動域・調子など"></div>
+    <div id="tagChips" style="margin-bottom:10px"></div>
+    <div id="wkAlert" class="alert"></div>
+    <button class="btn primary" id="wkSave">トレ記録を保存</button>
+
+    <h3 style="margin:24px 0 8px;font-size:14px">InBody CSV 取込</h3>
+    <div class="drop" id="drop">CSVをここにドラッグ＆ドロップ、またはクリックして選択<input id="file" type="file" accept=".csv" multiple hidden></div>
+    <div id="importMsg" class="small muted" style="margin-top:8px"></div>
+
+    <h3 style="margin:24px 0 8px;font-size:14px">データ保全（同期・バックアップ）</h3>
+    <div class="row">
+      <button class="btn" id="exportBtn">エクスポート（JSON）</button>
+      <button class="btn" id="importJsonBtn">インポート（JSON）</button>
+      <input id="jsonFile" type="file" accept=".json" hidden>
+    </div>
+    <div class="hint" style="margin-top:8px">端末間の同期は、エクスポートしたJSONをOneDrive経由で別端末にインポートしてください（同じファイルを複数端末から同時に書かない運用）。</div>
+  </section>
+
+  <div class="hint" style="margin:24px 0;text-align:center">正本は各端末内(IndexedDB)に保存。保存毎に自動世代バックアップ(7世代)。</div>
+</div>
+
+<button class="fab" id="fab">＋ 今日の体重</button>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script type="module" src="src/main.js"></script>
+<script>
+// ?dev でSWを登録解除（開発時のcache-first更新地獄を回避）
+if (location.search.includes('dev')) {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+} else if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "kintore-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "筋トレ データダッシュボード（PWA・ノービルド）。src/ がESMモジュール、CLIは .cjs。",
+  "scripts": {
+    "serve": "node server.cjs",
+    "gen-sw": "node gen-sw.cjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
