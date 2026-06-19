@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>次回：Upper-B</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    background: #F0F4FF;
+    color: #1E293B;
+    padding: 12px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ヘッダー */
+  .header {
+    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+    border-radius: 16px;
+    padding: 16px 18px 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(37,99,235,.25);
+  }
+  .header .session-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -.02em;
+  }
+  .header .session-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,.78);
+    margin-top: 3px;
+  }
+
+  /* 2アップルールバー */
+  .rule-bar {
+    background: #FFF7ED;
+    border-left: 4px solid #F59E0B;
+    border-radius: 0 10px 10px 0;
+    padding: 9px 13px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #92400E;
+    font-weight: 500;
+  }
+  .rule-bar strong { color: #78350F; }
+
+  /* 種目カード */
+  .exercise-card {
+    background: #fff;
+    border-radius: 14px;
+    margin-bottom: 9px;
+    overflow: hidden;
+    border: 1.5px solid #E2E8F0;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .exercise-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-bottom: 1.5px solid #F1F5F9;
+  }
+  .ex-num {
+    background: #2563EB;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ex-num.ss    { background: #0891B2; }
+  .ex-num.green { background: #16A34A; }
+
+  .ex-name {
+    font-size: 16px;
+    font-weight: 700;
+    flex: 1;
+    color: #1E293B;
+    letter-spacing: -.01em;
+  }
+  .ex-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: #EEF2FF;
+    color: #3730A3;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .ex-tag.green { background: #DCFCE7; color: #166534; }
+  .ex-tag.cyan  { background: #ECFEFF; color: #164E63; }
+
+  /* セット行 */
+  .sets { padding: 8px 14px 6px; }
+  .set-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #F1F5F9;
+    gap: 8px;
+  }
+  .set-row:last-child { border-bottom: none; }
+
+  .set-label {
+    font-size: 11px;
+    color: #94A3B8;
+    width: 26px;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+  .set-label.warmup { color: #CBD5E1; }
+  .set-detail { flex: 1; font-size: 16px; font-weight: 600; color: #1E293B; }
+  .set-detail .light { color: #64748B; font-weight: 400; font-size: 14px; }
+  .amrap { color: #DC2626; font-weight: 800; }
+  .set-rest {
+    font-size: 12px;
+    color: #64748B;
+    white-space: nowrap;
+    background: #F8FAFC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #E2E8F0;
+  }
+
+  /* ワンポイント */
+  .tip {
+    background: #FFFBEB;
+    border-left: 3px solid #FCD34D;
+    border-radius: 0 8px 8px 0;
+    padding: 7px 12px;
+    margin: 0 10px 10px;
+    font-size: 12px;
+    color: #78350F;
+    line-height: 1.6;
+  }
+  .tip::before { content: "💡 "; }
+
+  /* スーパーセットフロー */
+  .ss-flow {
+    background: #EFF6FF;
+    margin: 0 10px 10px;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13px;
+    color: #1D4ED8;
+    line-height: 2;
+    border: 1px solid #BFDBFE;
+    font-weight: 500;
+  }
+  .ss-flow .arrow { color: #93C5FD; display: block; font-size: 12px; }
+
+  /* ペックデック2段 */
+  .sub-section { padding: 8px 14px 4px; }
+  .sub-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 5px;
+  }
+  .sub-divider { height: 1px; background: #F1F5F9; margin: 4px 14px; }
+
+  /* フッター */
+  .footer {
+    margin-top: 12px;
+    padding: 13px 16px;
+    background: #fff;
+    border-radius: 14px;
+    font-size: 12px;
+    color: #94A3B8;
+    text-align: center;
+    line-height: 1.9;
+    border: 1.5px solid #E2E8F0;
+  }
+  .footer strong { color: #64748B; }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header">
+  <div class="session-name">Upper-B｜肩・腕・背中</div>
+  <div class="session-sub">肩の丸み・腕の太さ・胸＆後ろ三角筋を週2回　｜　目安85分</div>
+</div>
+
+<!-- 2アップルール -->
+<div class="rule-bar">
+  <strong>2アップルール：</strong>全セット上限回数達成 → 次回 +2.5〜5kg
+</div>
+
+<!-- 種目1：マシンショルダープレス -->
+<div class="exercise-card">
+  <div class="exercise-header">
+    <div class="ex-num">1</div>
+    <div class="ex-name">マシンショルダープレス</div>
+    <div class="ex-tag">肩・メイン</div>
+  </div>
+  <div class="sets">
+    <div class="set-row">
+      <div class="set-label warmup">W1</div>
+      <div class="set-detail">20〜27kg <span class="light">× 12回</span></div>
+    </div>
+    <div class="set-row">
+      <div class="set-label warmup">W2</div>
+      <div class="set-detail">41kg <span class="light">× 5回</span></div>
+    </div>
+    <div class="set-row">
+      <div class="set-label">M1</div>
+      <div class="set-detail">54kg <span class="light">× 8〜12回</span></div>
+      <div class="set-rest">休 2〜3分</div>
+    </div>
+    <div class="set-row">
+      <div class="set-label">M2</div>
+      <div class="set-detail">54kg <span class="light">× 8〜12回</span></div>
+      <div class="set-rest">休 2〜3分</div>
+    </div>
+    <div class="set-row">
+      <div class="set-label">M3</div>
+      <div class="set-detail">54kg × <span class="amrap">AMRAP ★</span></div>
+      <div class="set-rest">休 2〜3分</div>
+    </div>
+  </div>
+  <div class="tip">肩甲骨を下げてから押す。肩が耳に近づくと三角筋でなく僧帽筋に逃げる。</div>
+</div>
+
+<!-- 種目2：サイドレイズ -->
+<div class="exercise-card">
+  <div class="exercise-header">
+    <div class="ex-num">2</div>
+    <div class="ex-name">ケーブルサイドレイズ</div>
+    <div class="ex-tag">肩横・補助</div>
+  </div>
+  <div class="sets">
+    <div class="set-row">
+      <div class="set-label">M1</div>
+      <div class="set-detail">7〜9kg <span class="light">× 15〜20回</span></div>
+      <div class="set-rest">休 90秒</div>
+    </div>
+    <div class="set-row">
+      <div class="set-label">M2</div>
+      <div class="set-detail">7〜9kg <span class="light">× 15〜20回</span></div>
+      <div class="set-rest">休 90秒</div>
+    </div>
+    <div class="set-row">
+      <div class="set-label">M3</div>
+      <div class="set-detail"><span class="amrap">DS ★</span> <span class="light">（限界→重量↓そのまま続ける）</span></div>
+    </div>
+  </div>
+  <div class="tip">肘を少し曲げ、小指側から上げる意識。前腕でなく肘を主役にすると三角筋に入る。</div>
+</div>
+
+<!-- 種目3+4：スーパーセット -->
+<div class="exercise-card">
+  <div class="exercise-header">
+    <div class="ex-num ss">3+4</div>
+    <div class="ex-name">スーパーセット</div>
+    <div class="ex-tag cyan">SS・腕</div>
+  </div>
+  <div class="ss-flow">
+    EZバーカール（二頭筋）<span class="arrow">↓ 休まずそのまま</span>
+    ケーブルプレスダウン（三頭筋）<span class="arrow">↓ 2〜3分休む → × 3セット</span>
+  </div>
+  <div class="sets">
+    <div class="set-row">
+      <div class="set-label">カール</div>
+      <div class="set-detail">30kg <span class="light">× 8〜12回　M3は</span> <span class="amrap">AMRAP ★</span></div>
+      <div class="set-rest">休 2〜3分</div>
+    </div>
+    <div class="set-row">
+      <div class="set-label">押し</div>
+      <div class="set-detail">適重量 <span class="light">× 10〜15回　M3は</span> <span class="amrap">AMRAP ★</span></div>
+    </div>
+  </div>
+  <div class="tip">カール：肘を体の横に固定、前腕だけ動かす。プレスダウン：脇を締めて肘固定、前腕だけ。</div>
+</div>
+
+<!-- 種目5：ペックデック＋アイソラテラルハイロー -->
+<div class="exercise-card">
+  <div class="exercise-header">
+    <div class="ex-num green">5</div>
+    <div class="ex-name">ペックデック ＋ ハイロー</div>
+    <div class="ex-tag green">必須×2</div>
+  </div>
+
+  <!-- ペックデック -->
+  <div class="sub-section">
+    <div class="sub-label">▶ ペックデック（正面向き・胸）</div>
+    <div class="set-row">
+      <div class="set-label">M1〜3</div>
+      <div class="set-detail">適重量 <span class="light">× 12〜15回</span></div>
+      <div class="set-rest">休 90秒</div>
+    </div>
+  </div>
+  <div class="tip">肘を少し曲げたまま固定。腕でなく「胸で閉じる」意識。最大収縮で一瞬止める。</div>
+
+  <div class="sub-divider"></div>
+
+  <!-- アイソラテラルハイロー -->
+  <div class="sub-section">
+    <div class="sub-label">▶ アイソラテラルハイロー（後部三角筋）</div>
+    <div class="set-row">
+      <div class="set-label">M1〜3</div>
+      <div class="set-detail">軽め <span class="light">× 15〜20回</span></div>
+      <div class="set-rest">休 90秒</div>
+    </div>
+  </div>
+  <div class="tip">肘を肩より少し上の高さで引く。引ききったとき肩甲骨を後ろに絞るイメージで止める。</div>
+</div>
+
+<!-- フッター -->
+<div class="footer">
+  <strong>前回 Upper-A の記録</strong><br>
+  BBベンチ 70kg × 8・8・9　懸垂 自重 8・5・3<br>
+  インクライン 33.6kg × 6・8・10<br><br>
+  <strong>次の次：</strong>Lower-A（スクワット 77.5kg・レッグカール初回）
+</div>
+
+</body>
+</html>
