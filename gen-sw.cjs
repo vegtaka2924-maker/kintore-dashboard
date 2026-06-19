@@ -20,15 +20,29 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
+// next-session.html は「常に最新版」が必要なため、network-first で扱う。
+// それ以外のアセットは従来通り cache-first（高速・オフライン対応）。
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
-      return res;
-    }).catch(() => hit))
-  );
+  const url = new URL(e.request.url);
+  const isNextSession = url.pathname.endsWith('next-session.html');
+
+  if (isNextSession) {
+    // network-first: まずネットから取得し、失敗したときだけキャッシュを返す。
+    // キャッシュには保存しない（古い版が残らないように）。
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    );
+  } else {
+    // cache-first: キャッシュがあればそれを返す（従来通り）。
+    e.respondWith(
+      caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+        return res;
+      }).catch(() => hit))
+    );
+  }
 });
 `;
   fs.writeFileSync(path.join(ROOT, 'sw.js'), sw);

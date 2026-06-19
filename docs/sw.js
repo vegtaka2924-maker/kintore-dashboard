@@ -1,5 +1,5 @@
 /* 自動生成（build-deploy.cjs）。公開用。 */
-const CACHE = 'gym-v1.0.0';
+const CACHE = 'gym-v1.1.0';
 const ASSETS = [
   "./",
   "./index.html",
@@ -22,9 +22,17 @@ const ASSETS = [
 ];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
+// next-session.html は「常に最新版」が必要なため network-first。それ以外は cache-first（従来通り）。
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-    const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {}); return res;
-  }).catch(() => hit)));
+  const url = new URL(e.request.url);
+  if (url.pathname.endsWith('next-session.html')) {
+    // network-first: まずネットから取得し、失敗したときだけキャッシュを返す。キャッシュには保存しない。
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  } else {
+    // cache-first: キャッシュがあればそれを返す（従来通り）。
+    e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+      const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {}); return res;
+    }).catch(() => hit)));
+  }
 });

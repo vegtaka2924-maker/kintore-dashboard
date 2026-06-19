@@ -22,6 +22,12 @@ function build() {
   const srcFiles = fs.readdirSync(path.join(ROOT, 'src')).filter(f => f.endsWith('.js'));
   for (const f of srcFiles) copy(path.join(ROOT, 'src', f), path.join(OUT, 'src', f));
 
+  // 2b) next-session.html（トレーニングごとに作戦カードを更新する。存在する場合のみコピー）
+  const nextSessionSrc = path.join(ROOT, 'next-session.html');
+  if (fs.existsSync(nextSessionSrc)) {
+    copy(nextSessionSrc, path.join(OUT, 'next-session.html'));
+  }
+
   // 3) manifest（start_url/scopeを公開ルート用に "./" へ）
   const man = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.webmanifest'), 'utf8'));
   man.start_url = './'; man.scope = './';
@@ -37,11 +43,19 @@ const CACHE = 'gym-v${version}';
 const ASSETS = ${JSON.stringify(assets, null, 2)};
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
+// next-session.html は「常に最新版」が必要なため network-first。それ以外は cache-first（従来通り）。
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-    const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {}); return res;
-  }).catch(() => hit)));
+  const url = new URL(e.request.url);
+  if (url.pathname.endsWith('next-session.html')) {
+    // network-first: まずネットから取得し、失敗したときだけキャッシュを返す。キャッシュには保存しない。
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  } else {
+    // cache-first: キャッシュがあればそれを返す（従来通り）。
+    e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+      const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {}); return res;
+    }).catch(() => hit)));
+  }
 });
 `;
   fs.writeFileSync(path.join(OUT, 'sw.js'), sw);
