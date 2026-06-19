@@ -12,328 +12,464 @@
     location.replace(u.toString());
   }
 </script>
-<title>次回：Upper-B</title>
+<title>Upper-B｜次回セッション</title>
+
+<!-- 雑誌風タイポ：英字/数字の見出しは Playfair（高コントラストのセリフ）、
+     和文見出しは Noto Serif JP（明朝）、データ・本文は Noto Sans JP（ゴシック）。
+     カードは常にネット接続で開くので、Webフォントを読み込んでもよい（ビルド不要・リンク1本）。 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Noto+Serif+JP:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
+  /* ===== デザイントークン（紙の質感のオフホワイト × オックスブラッド1色） ===== */
+  :root {
+    --paper:        #F4EFE6;  /* 温かみのあるオフホワイト＝誌面のベース */
+    --ink:          #211C17;  /* 文字の主色（黒に近い温かいインク） */
+    --ink-soft:     #6E655A;  /* 補足・ラベルの色 */
+    --ink-faint:    #A89E90;  /* ウォームアップや控えめな注記 */
+    --oxblood:      #7C2A22;  /* アクセント1色：オックスブラッド（深い赤） */
+    --oxblood-deep: #5E1F19;  /* 濃いめ（小さい文字でのコントラスト確保） */
+    --rule:         #DCD4C6;  /* 細い罫線 */
+    --rule-strong:  #C3B9A8;  /* 少し強い罫線 */
+
+    --serif-latin: "Playfair Display", "Noto Serif JP", serif;
+    --serif-jp:    "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+    --sans-jp:     "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
-    background: #F0F4FF;
-    color: #1E293B;
-    padding: 12px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans-jp);
     font-size: 15px;
-    line-height: 1.5;
+    line-height: 1.7;
+    /* 数字は等幅で桁を揃える（誌面の数表らしさ） */
+    font-feature-settings: "tnum" 1;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* ヘッダー */
-  .header {
-    background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
-    border-radius: 16px;
-    padding: 16px 18px 14px;
-    margin-bottom: 10px;
-    box-shadow: 0 4px 12px rgba(37,99,235,.25);
-  }
-  .header .session-name {
-    font-size: 22px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -.02em;
-  }
-  .header .session-sub {
-    font-size: 12px;
-    color: rgba(255,255,255,.78);
-    margin-top: 3px;
+  /* 狭い画面（折りたたみ時）優先。大画面では中央寄せで快適に。 */
+  .sheet {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 26px 22px 40px;
   }
 
-  /* 2アップルールバー */
-  .rule-bar {
-    background: #FFF7ED;
-    border-left: 4px solid #F59E0B;
-    border-radius: 0 10px 10px 0;
-    padding: 9px 13px;
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: #92400E;
-    font-weight: 500;
-  }
-  .rule-bar strong { color: #78350F; }
-
-  /* 種目カード */
-  .exercise-card {
-    background: #fff;
-    border-radius: 14px;
-    margin-bottom: 9px;
-    overflow: hidden;
-    border: 1.5px solid #E2E8F0;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
-  }
-  .exercise-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 14px;
-    border-bottom: 1.5px solid #F1F5F9;
-  }
-  .ex-num {
-    background: #2563EB;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .ex-num.ss    { background: #0891B2; }
-  .ex-num.green { background: #16A34A; }
-
-  .ex-name {
-    font-size: 16px;
-    font-weight: 700;
-    flex: 1;
-    color: #1E293B;
-    letter-spacing: -.01em;
-  }
-  .ex-tag {
+  /* 小さなラベル（小型大文字・字間広め）。誌面の見出し小物に多用。 */
+  .kicker {
+    font-family: var(--sans-jp);
     font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 99px;
-    background: #EEF2FF;
-    color: #3730A3;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+
+  /* ===== 題字（マストヘッド） ===== */
+  .masthead { margin-bottom: 26px; }
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 9px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .masthead-top .date {
+    font-family: var(--serif-latin);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .title {
+    font-family: var(--serif-latin);
+    font-weight: 700;
+    font-size: 54px;
+    line-height: 1.02;
+    letter-spacing: -.01em;
+    margin: 14px 0 2px;
+  }
+  .title-jp {
+    font-family: var(--serif-jp);
     font-weight: 600;
+    font-size: 19px;
+    letter-spacing: .04em;
+    color: var(--ink);
+  }
+  .lede {
+    font-family: var(--serif-jp);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid var(--rule);
+  }
+  .lede .min { color: var(--oxblood); font-weight: 600; }
+
+  /* ===== 仕上がり予告（鍛えると、こうなる） ===== */
+  .payoff { margin: 22px 0 6px; }
+  .payoff .k { display: block; margin-bottom: 10px; }
+  .payoff-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: baseline;
+    padding: 9px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .po-target {
+    font-family: var(--serif-jp);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--oxblood);
     white-space: nowrap;
   }
-  .ex-tag.green { background: #DCFCE7; color: #166534; }
-  .ex-tag.cyan  { background: #ECFEFF; color: #164E63; }
+  .po-text { font-size: 13.5px; line-height: 1.65; color: var(--ink); }
 
-  /* セット行 */
-  .sets { padding: 8px 14px 6px; }
-  .set-row {
-    display: flex;
-    align-items: center;
-    padding: 6px 0;
-    border-bottom: 1px solid #F1F5F9;
-    gap: 8px;
+  /* ===== 進行ルール（短い前書き） ===== */
+  .rulenote {
+    margin: 20px 0 6px;
+    padding-left: 14px;
+    border-left: 2px solid var(--oxblood);
   }
-  .set-row:last-child { border-bottom: none; }
+  .rulenote .k { display: block; margin-bottom: 2px; }
+  .rulenote p { font-size: 13.5px; color: var(--ink); }
+  .rulenote strong { font-weight: 700; }
+
+  /* ===== 種目（記事ブロック） ===== */
+  .exercise {
+    padding: 22px 0 18px;
+    border-top: 1px solid var(--rule);
+  }
+  .exercise:first-of-type { border-top: 2px solid var(--ink); }
+
+  .ex-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .ex-no {
+    font-family: var(--serif-latin);
+    font-weight: 700;
+    font-size: 40px;
+    line-height: .9;
+    color: var(--oxblood);
+    flex-shrink: 0;
+    min-width: 52px;
+  }
+  .ex-titles { flex: 1; padding-top: 2px; }
+  .ex-name {
+    font-family: var(--serif-jp);
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.3;
+    letter-spacing: .01em;
+  }
+  .ex-tag {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .ex-tag::before { content: "— "; color: var(--rule-strong); }
+
+  /* セット表：ラベル / 内容 / 休憩 の3列を罫線で区切る */
+  .sets { margin-left: 66px; }
+  @media (max-width: 360px) { .sets { margin-left: 0; } }
+
+  .set {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .set:last-child { border-bottom: none; }
 
   .set-label {
     font-size: 11px;
-    color: #94A3B8;
-    width: 26px;
-    flex-shrink: 0;
     font-weight: 700;
+    letter-spacing: .08em;
+    color: var(--ink-soft);
   }
-  .set-label.warmup { color: #CBD5E1; }
-  .set-detail { flex: 1; font-size: 16px; font-weight: 600; color: #1E293B; }
-  .set-detail .light { color: #64748B; font-weight: 400; font-size: 14px; }
-  .amrap { color: #DC2626; font-weight: 800; }
+  .set-label.warm { color: var(--ink-faint); }
+
+  .set-detail { font-size: 16px; font-weight: 500; }
+  .set-detail .x { color: var(--ink-faint); font-weight: 400; }
+  .set-detail .reps { color: var(--ink-soft); font-weight: 400; }
+
+  /* 強調（AMRAP・ドロップセット）はオックスブラッドの小型大文字 */
+  .accent {
+    color: var(--oxblood);
+    font-weight: 700;
+    letter-spacing: .06em;
+  }
+
   .set-rest {
-    font-size: 12px;
-    color: #64748B;
+    font-family: var(--serif-latin);
+    font-style: italic;
+    font-size: 12.5px;
+    color: var(--ink-soft);
     white-space: nowrap;
-    background: #F8FAFC;
-    padding: 2px 8px;
-    border-radius: 6px;
-    border: 1px solid #E2E8F0;
   }
 
-  /* ワンポイント */
+  /* ワンポイント（記事の傍注らしく明朝イタリック寄り） */
   .tip {
-    background: #FFFBEB;
-    border-left: 3px solid #FCD34D;
-    border-radius: 0 8px 8px 0;
-    padding: 7px 12px;
-    margin: 0 10px 10px;
-    font-size: 12px;
-    color: #78350F;
-    line-height: 1.6;
-  }
-  .tip::before { content: "💡 "; }
-
-  /* スーパーセットフロー */
-  .ss-flow {
-    background: #EFF6FF;
-    margin: 0 10px 10px;
-    border-radius: 10px;
-    padding: 11px 14px;
+    margin: 12px 0 0 66px;
+    padding-left: 13px;
+    border-left: 1px solid var(--oxblood);
+    font-family: var(--serif-jp);
     font-size: 13px;
-    color: #1D4ED8;
-    line-height: 2;
-    border: 1px solid #BFDBFE;
-    font-weight: 500;
+    line-height: 1.75;
+    color: var(--ink-soft);
   }
-  .ss-flow .arrow { color: #93C5FD; display: block; font-size: 12px; }
+  @media (max-width: 360px) { .tip { margin-left: 0; } }
 
-  /* ペックデック2段 */
-  .sub-section { padding: 8px 14px 4px; }
-  .sub-label {
+  /* スーパーセットの流れ */
+  .ss-flow {
+    margin: 4px 0 14px 66px;
+    padding: 13px 16px;
+    border: 1px solid var(--rule-strong);
+  }
+  @media (max-width: 360px) { .ss-flow { margin-left: 0; } }
+  .ss-flow .step {
+    font-family: var(--serif-jp);
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .ss-flow .arrow {
+    display: block;
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--oxblood);
+    margin: 3px 0;
+  }
+
+  /* サブ見出し（種目内の小分け） */
+  .subhead {
+    margin: 14px 0 2px 66px;
     font-size: 11px;
     font-weight: 700;
-    color: #64748B;
+    letter-spacing: .14em;
     text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: 5px;
+    color: var(--oxblood);
   }
-  .sub-divider { height: 1px; background: #F1F5F9; margin: 4px 14px; }
+  @media (max-width: 360px) { .subhead { margin-left: 0; } }
+  .subhead + .sets { margin-top: 4px; }
 
-  /* フッター */
-  .footer {
-    margin-top: 12px;
-    padding: 13px 16px;
-    background: #fff;
-    border-radius: 14px;
-    font-size: 12px;
-    color: #94A3B8;
-    text-align: center;
-    line-height: 1.9;
-    border: 1.5px solid #E2E8F0;
+  /* ===== 奥付（前号の記録） ===== */
+  .colophon {
+    margin-top: 34px;
+    padding-top: 16px;
+    border-top: 2px solid var(--ink);
   }
-  .footer strong { color: #64748B; }
+  .colophon .k { display: block; margin-bottom: 10px; }
+  .colophon dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
+  .colophon dt {
+    font-family: var(--serif-jp);
+    font-size: 13px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .colophon dd {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .colophon .next {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--serif-jp);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .colophon .next b { color: var(--oxblood); font-weight: 700; }
 </style>
 </head>
 <body>
+<div class="sheet">
 
-<!-- ヘッダー -->
-<div class="header">
-  <div class="session-name">Upper-B｜肩・腕・背中</div>
-  <div class="session-sub">肩の丸み・腕の太さ・胸＆後ろ三角筋を週2回　｜　目安85分</div>
+  <!-- ===== 題字 ===== -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <span class="kicker">Next Session</span>
+      <span class="date">Upper / B</span>
+    </div>
+    <h1 class="title">Upper-B</h1>
+    <div class="title-jp">肩・腕・背中</div>
+    <p class="lede">肩の丸み・腕の太さ・胸＆後ろ三角筋を週2回　／　目安 <span class="min">85分</span></p>
+  </header>
+
+  <!-- ===== 仕上がり予告（鍛えると、こうなる） ===== -->
+  <section class="payoff">
+    <span class="kicker k">鍛えると、こうなる</span>
+    <div class="payoff-item">
+      <span class="po-target">肩</span>
+      <span class="po-text">三角筋が丸く張り出し、肩幅が出る。上半身が逆三角形に近づき、立ち姿そのものが変わる。</span>
+    </div>
+    <div class="payoff-item">
+      <span class="po-target">腕</span>
+      <span class="po-text">二頭の山と三頭の馬蹄で、Tシャツの袖が埋まる太さへ。腕まくりが様になる。</span>
+    </div>
+    <div class="payoff-item">
+      <span class="po-target">胸・後ろ</span>
+      <span class="po-text">胸の厚みと後部三角の立体感。後ろ姿と姿勢に“強さ”がにじむ。</span>
+    </div>
+  </section>
+
+  <!-- ===== 進行ルール ===== -->
+  <div class="rulenote">
+    <span class="kicker k">2-up rule</span>
+    <p><strong>全セットで上限回数を達成</strong>したら、次回 +2.5〜5kg。</p>
+  </div>
+
+  <!-- ===== 01 マシンショルダープレス ===== -->
+  <article class="exercise">
+    <div class="ex-head">
+      <div class="ex-no">01</div>
+      <div class="ex-titles">
+        <div class="ex-name">マシンショルダープレス</div>
+        <span class="ex-tag">肩・メイン</span>
+      </div>
+    </div>
+    <div class="sets">
+      <div class="set">
+        <span class="set-label warm">W1</span>
+        <span class="set-detail">20〜27kg <span class="x">×</span> <span class="reps">12回</span></span>
+        <span class="set-rest"></span>
+      </div>
+      <div class="set">
+        <span class="set-label warm">W2</span>
+        <span class="set-detail">41kg <span class="x">×</span> <span class="reps">5回</span></span>
+        <span class="set-rest"></span>
+      </div>
+      <div class="set">
+        <span class="set-label">M1</span>
+        <span class="set-detail">54kg <span class="x">×</span> <span class="reps">8〜12回</span></span>
+        <span class="set-rest">rest 2–3 min</span>
+      </div>
+      <div class="set">
+        <span class="set-label">M2</span>
+        <span class="set-detail">54kg <span class="x">×</span> <span class="reps">8〜12回</span></span>
+        <span class="set-rest">rest 2–3 min</span>
+      </div>
+      <div class="set">
+        <span class="set-label">M3</span>
+        <span class="set-detail">54kg <span class="x">×</span> <span class="accent">AMRAP ★</span></span>
+        <span class="set-rest">rest 2–3 min</span>
+      </div>
+    </div>
+    <p class="tip">肩甲骨を下げてから押す。肩が耳に近づくと三角筋でなく僧帽筋に逃げる。</p>
+  </article>
+
+  <!-- ===== 02 ケーブルサイドレイズ ===== -->
+  <article class="exercise">
+    <div class="ex-head">
+      <div class="ex-no">02</div>
+      <div class="ex-titles">
+        <div class="ex-name">ケーブルサイドレイズ</div>
+        <span class="ex-tag">肩横・補助</span>
+      </div>
+    </div>
+    <div class="sets">
+      <div class="set">
+        <span class="set-label">M1</span>
+        <span class="set-detail">7〜9kg <span class="x">×</span> <span class="reps">15〜20回</span></span>
+        <span class="set-rest">rest 90 sec</span>
+      </div>
+      <div class="set">
+        <span class="set-label">M2</span>
+        <span class="set-detail">7〜9kg <span class="x">×</span> <span class="reps">15〜20回</span></span>
+        <span class="set-rest">rest 90 sec</span>
+      </div>
+      <div class="set">
+        <span class="set-label">M3</span>
+        <span class="set-detail"><span class="accent">DROP SET ★</span> <span class="reps">限界→重量↓そのまま続ける</span></span>
+        <span class="set-rest"></span>
+      </div>
+    </div>
+    <p class="tip">肘を少し曲げ、小指側から上げる意識。前腕でなく肘を主役にすると三角筋に入る。</p>
+  </article>
+
+  <!-- ===== 03 / 04 スーパーセット ===== -->
+  <article class="exercise">
+    <div class="ex-head">
+      <div class="ex-no">03<span style="font-size:22px;">/04</span></div>
+      <div class="ex-titles">
+        <div class="ex-name">スーパーセット｜腕</div>
+        <span class="ex-tag">二頭 + 三頭</span>
+      </div>
+    </div>
+    <div class="ss-flow">
+      <span class="step">EZバーカール（二頭筋）</span>
+      <span class="arrow">↓　休まずそのまま</span>
+      <span class="step">ケーブルプレスダウン（三頭筋）</span>
+      <span class="arrow">↓　2〜3分休む　→　× 3セット</span>
+    </div>
+    <div class="sets">
+      <div class="set">
+        <span class="set-label">カール</span>
+        <span class="set-detail">30kg <span class="x">×</span> <span class="reps">8〜12回 ・ M3は</span> <span class="accent">AMRAP ★</span></span>
+        <span class="set-rest">rest 2–3 min</span>
+      </div>
+      <div class="set">
+        <span class="set-label">押し</span>
+        <span class="set-detail">適重量 <span class="x">×</span> <span class="reps">10〜15回 ・ M3は</span> <span class="accent">AMRAP ★</span></span>
+        <span class="set-rest"></span>
+      </div>
+    </div>
+    <p class="tip">カール：肘を体の横に固定、前腕だけ動かす。プレスダウン：脇を締めて肘固定、前腕だけ。</p>
+  </article>
+
+  <!-- ===== 05 ペックデック ＋ ハイロー ===== -->
+  <article class="exercise">
+    <div class="ex-head">
+      <div class="ex-no">05</div>
+      <div class="ex-titles">
+        <div class="ex-name">ペックデック ＋ ハイロー</div>
+        <span class="ex-tag">必須 × 2</span>
+      </div>
+    </div>
+
+    <div class="subhead">▶ ペックデック（正面向き・胸）</div>
+    <div class="sets">
+      <div class="set">
+        <span class="set-label">M1–3</span>
+        <span class="set-detail">適重量 <span class="x">×</span> <span class="reps">12〜15回</span></span>
+        <span class="set-rest">rest 90 sec</span>
+      </div>
+    </div>
+    <p class="tip">肘を少し曲げたまま固定。腕でなく「胸で閉じる」意識。最大収縮で一瞬止める。</p>
+
+    <div class="subhead">▶ アイソラテラルハイロー（後部三角筋）</div>
+    <div class="sets">
+      <div class="set">
+        <span class="set-label">M1–3</span>
+        <span class="set-detail">軽め <span class="x">×</span> <span class="reps">15〜20回</span></span>
+        <span class="set-rest">rest 90 sec</span>
+      </div>
+    </div>
+    <p class="tip">肘を肩より少し上の高さで引く。引ききったとき肩甲骨を後ろに絞るイメージで止める。</p>
+  </article>
+
+  <!-- ===== 奥付：前号の記録 ===== -->
+  <footer class="colophon">
+    <span class="kicker k">前号の記録 ・ Last Session — Upper-A</span>
+    <dl>
+      <dt>BBベンチ</dt><dd>70kg × 8 ・ 8 ・ 9</dd>
+      <dt>懸垂</dt><dd>自重 × 8 ・ 5 ・ 3</dd>
+      <dt>インクライン</dt><dd>33.6kg × 6 ・ 8 ・ 10</dd>
+    </dl>
+    <p class="next">次の次は <b>Lower-A</b>（スクワット 77.5kg・レッグカール初回）</p>
+  </footer>
+
 </div>
-
-<!-- 2アップルール -->
-<div class="rule-bar">
-  <strong>2アップルール：</strong>全セット上限回数達成 → 次回 +2.5〜5kg
-</div>
-
-<!-- 種目1：マシンショルダープレス -->
-<div class="exercise-card">
-  <div class="exercise-header">
-    <div class="ex-num">1</div>
-    <div class="ex-name">マシンショルダープレス</div>
-    <div class="ex-tag">肩・メイン</div>
-  </div>
-  <div class="sets">
-    <div class="set-row">
-      <div class="set-label warmup">W1</div>
-      <div class="set-detail">20〜27kg <span class="light">× 12回</span></div>
-    </div>
-    <div class="set-row">
-      <div class="set-label warmup">W2</div>
-      <div class="set-detail">41kg <span class="light">× 5回</span></div>
-    </div>
-    <div class="set-row">
-      <div class="set-label">M1</div>
-      <div class="set-detail">54kg <span class="light">× 8〜12回</span></div>
-      <div class="set-rest">休 2〜3分</div>
-    </div>
-    <div class="set-row">
-      <div class="set-label">M2</div>
-      <div class="set-detail">54kg <span class="light">× 8〜12回</span></div>
-      <div class="set-rest">休 2〜3分</div>
-    </div>
-    <div class="set-row">
-      <div class="set-label">M3</div>
-      <div class="set-detail">54kg × <span class="amrap">AMRAP ★</span></div>
-      <div class="set-rest">休 2〜3分</div>
-    </div>
-  </div>
-  <div class="tip">肩甲骨を下げてから押す。肩が耳に近づくと三角筋でなく僧帽筋に逃げる。</div>
-</div>
-
-<!-- 種目2：サイドレイズ -->
-<div class="exercise-card">
-  <div class="exercise-header">
-    <div class="ex-num">2</div>
-    <div class="ex-name">ケーブルサイドレイズ</div>
-    <div class="ex-tag">肩横・補助</div>
-  </div>
-  <div class="sets">
-    <div class="set-row">
-      <div class="set-label">M1</div>
-      <div class="set-detail">7〜9kg <span class="light">× 15〜20回</span></div>
-      <div class="set-rest">休 90秒</div>
-    </div>
-    <div class="set-row">
-      <div class="set-label">M2</div>
-      <div class="set-detail">7〜9kg <span class="light">× 15〜20回</span></div>
-      <div class="set-rest">休 90秒</div>
-    </div>
-    <div class="set-row">
-      <div class="set-label">M3</div>
-      <div class="set-detail"><span class="amrap">DS ★</span> <span class="light">（限界→重量↓そのまま続ける）</span></div>
-    </div>
-  </div>
-  <div class="tip">肘を少し曲げ、小指側から上げる意識。前腕でなく肘を主役にすると三角筋に入る。</div>
-</div>
-
-<!-- 種目3+4：スーパーセット -->
-<div class="exercise-card">
-  <div class="exercise-header">
-    <div class="ex-num ss">3+4</div>
-    <div class="ex-name">スーパーセット</div>
-    <div class="ex-tag cyan">SS・腕</div>
-  </div>
-  <div class="ss-flow">
-    EZバーカール（二頭筋）<span class="arrow">↓ 休まずそのまま</span>
-    ケーブルプレスダウン（三頭筋）<span class="arrow">↓ 2〜3分休む → × 3セット</span>
-  </div>
-  <div class="sets">
-    <div class="set-row">
-      <div class="set-label">カール</div>
-      <div class="set-detail">30kg <span class="light">× 8〜12回　M3は</span> <span class="amrap">AMRAP ★</span></div>
-      <div class="set-rest">休 2〜3分</div>
-    </div>
-    <div class="set-row">
-      <div class="set-label">押し</div>
-      <div class="set-detail">適重量 <span class="light">× 10〜15回　M3は</span> <span class="amrap">AMRAP ★</span></div>
-    </div>
-  </div>
-  <div class="tip">カール：肘を体の横に固定、前腕だけ動かす。プレスダウン：脇を締めて肘固定、前腕だけ。</div>
-</div>
-
-<!-- 種目5：ペックデック＋アイソラテラルハイロー -->
-<div class="exercise-card">
-  <div class="exercise-header">
-    <div class="ex-num green">5</div>
-    <div class="ex-name">ペックデック ＋ ハイロー</div>
-    <div class="ex-tag green">必須×2</div>
-  </div>
-
-  <!-- ペックデック -->
-  <div class="sub-section">
-    <div class="sub-label">▶ ペックデック（正面向き・胸）</div>
-    <div class="set-row">
-      <div class="set-label">M1〜3</div>
-      <div class="set-detail">適重量 <span class="light">× 12〜15回</span></div>
-      <div class="set-rest">休 90秒</div>
-    </div>
-  </div>
-  <div class="tip">肘を少し曲げたまま固定。腕でなく「胸で閉じる」意識。最大収縮で一瞬止める。</div>
-
-  <div class="sub-divider"></div>
-
-  <!-- アイソラテラルハイロー -->
-  <div class="sub-section">
-    <div class="sub-label">▶ アイソラテラルハイロー（後部三角筋）</div>
-    <div class="set-row">
-      <div class="set-label">M1〜3</div>
-      <div class="set-detail">軽め <span class="light">× 15〜20回</span></div>
-      <div class="set-rest">休 90秒</div>
-    </div>
-  </div>
-  <div class="tip">肘を肩より少し上の高さで引く。引ききったとき肩甲骨を後ろに絞るイメージで止める。</div>
-</div>
-
-<!-- フッター -->
-<div class="footer">
-  <strong>前回 Upper-A の記録</strong><br>
-  BBベンチ 70kg × 8・8・9　懸垂 自重 8・5・3<br>
-  インクライン 33.6kg × 6・8・10<br><br>
-  <strong>次の次：</strong>Lower-A（スクワット 77.5kg・レッグカール初回）
-</div>
-
 </body>
 </html>
