@@ -278,12 +278,23 @@ input[type=text],input[type=number],input[type=date],select{
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script type="module" src="src/main.js"></script>
 <script>
-// ?dev でSWを登録解除（開発時のcache-first更新地獄を回避）
-if (location.search.includes('dev')) {
-  if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
-} else if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+// Service Worker は廃止した（古いキャッシュが「古いカードが出続ける」原因だったため）。
+// 新規登録はせず、過去に居座っている登録があれば確実に解除し、キャッシュも消して
+// 「ただのWebページ」に戻す自己回復処理。これで PC・スマホとも自動で正常化する。
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => {
+    r.update().catch(() => {});      // 古い sw.js の更新チェックを能動的に促す → 自滅SWを引き込む
+    r.unregister().catch(() => {});  // 直接の登録解除も試みる
+  }));
+  // 自滅SWからの合図、または制御者の交代を検知したら一度だけ再読込（最新を表示）
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data === 'sw-bye') location.reload(); });
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloaded) return; reloaded = true; location.reload();
+  });
 }
+// 残っているキャッシュも掃除
+if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
 </script>
 </body>
 </html>

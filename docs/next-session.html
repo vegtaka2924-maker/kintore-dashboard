@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- 毎日URLに日付を追加してキャッシュを回避する -->
+<!-- 開くたびに一意なクエリ(?t=時刻)を1回だけ付けて、確実にネットから最新を取得する。
+     ホーム画面のショートカットは常に t 無しで開くので毎回1回だけ飛び、以後はループしない。 -->
 <script>
-  const url = new URL(location.href);
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  if (url.searchParams.get('d') !== today) {
-    url.searchParams.set('d', today);
-    location.replace(url.toString());
+  const u = new URL(location.href);
+  if (!u.searchParams.get('t')) {
+    u.searchParams.set('t', Date.now());
+    location.replace(u.toString());
   }
 </script>
 <title>次回：Upper-B</title>

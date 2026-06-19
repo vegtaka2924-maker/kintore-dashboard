@@ -33,30 +33,29 @@ function build() {
   man.start_url = './'; man.scope = './';
   fs.writeFileSync(path.join(OUT, 'manifest.webmanifest'), JSON.stringify(man, null, 2));
 
-  // 4) sw.js（公開用ASSETS。エントリは ./index.html）
+  // 4) sw.js（★自滅SW）
+  //   かつてはオフライン用に cache-first でアセットを保存していたが、それが原因で
+  //   スマホに「古いカード（next-session.html）が出続ける」問題が起きた。
+  //   この用途にオフライン保存は過剰なので Service Worker を廃止する。
+  //   ただし既存端末には古いSWが残っているため、その古いSWが更新チェックで
+  //   この sw.js を読み込んだとき、自分自身を消して素のWebページに戻すようにする。
+  //   ・addAll を一切使わない＝install は必ず成功し、確実に activate される
+  //   ・activate で全キャッシュを削除 → 開いている画面に再読込を通知 → 最後に自分を登録解除
+  //   ・fetch ハンドラを置かない＝以後すべてのリクエストがネット直行（HTTPキャッシュのみ有効）
   const consts = fs.readFileSync(path.join(ROOT, 'src', 'constants.js'), 'utf8');
   const version = (consts.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/) || [, '0.0.0'])[1];
-  const assets = ['./', './index.html', './manifest.webmanifest', ...srcFiles.map(f => './src/' + f),
-    'https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js'];
-  const sw = `/* 自動生成（build-deploy.cjs）。公開用。 */
-const CACHE = 'gym-v${version}';
-const ASSETS = ${JSON.stringify(assets, null, 2)};
-self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())));
-self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
-// next-session.html は「常に最新版」が必要なため network-first。それ以外は cache-first（従来通り）。
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  const url = new URL(e.request.url);
-  if (url.pathname.endsWith('next-session.html')) {
-    // network-first: まずネットから取得し、失敗したときだけキャッシュを返す。キャッシュには保存しない。
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-  } else {
-    // cache-first: キャッシュがあればそれを返す（従来通り）。
-    e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {}); return res;
-    }).catch(() => hit)));
-  }
-});
+  const sw = `/* 自動生成（build-deploy.cjs）。自滅SW：旧キャッシュとSW自身を消して素のサイトへ戻す。 */
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil((async () => {
+  // 1) 全キャッシュを削除
+  for (const k of await caches.keys()) await caches.delete(k);
+  // 2) 開いている画面に「リロードして」と通知（clients.navigate より堅牢）
+  const cs = await self.clients.matchAll({ type: 'window' });
+  for (const c of cs) c.postMessage('sw-bye');
+  // 3) 最後に自分を登録解除（通知を先・unregister を最後に）
+  await self.registration.unregister();
+})()));
+// fetch ハンドラは置かない＝全リクエストがネット直行
 `;
   fs.writeFileSync(path.join(OUT, 'sw.js'), sw);
 

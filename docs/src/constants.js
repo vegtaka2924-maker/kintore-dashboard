@@ -1,5 +1,5 @@
 /* 定数（色・目標・列マッピング）。色の意味固定 → ライム=筋肉, アンバー=脂肪 */
-export const APP_VERSION = '1.0.0';           // ★ sw.js のキャッシュ名は gen-sw.js がここから注入
+export const APP_VERSION = '1.1.0';           // ★ sw.js のキャッシュ名は gen-sw.js がここから注入
 
 export const C = {
   lime:'#B6F500', amber:'#FFB020', cyan:'#3DD6D0', up:'#3FB950', down:'#F85149',
