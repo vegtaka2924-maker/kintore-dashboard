@@ -3,13 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- 開くたびに一意なクエリ(?t=時刻)を1回だけ付けて、確実にネットから最新を取得する。
-     ホーム画面のショートカットは常に t 無しで開くので毎回1回だけ飛び、以後はループしない。 -->
+<!-- 開くたびに1回だけ、CDNキャッシュを回避してサーバーから最新を取得する。
+     GitHub PagesのCDNはクエリパラメータを無視するため ?t=Date.now() では効かない。
+     fetch の cache:'reload' オプションは「Cache-Control: no-cache」をCDNに送り、
+     CDNを素通りしてGitHubのサーバーから最新を取得してブラウザキャッシュを更新する。
+     その後 location.replace で同じURLに遷移するとブラウザキャッシュ（最新版）が表示される。
+     sessionStorage のフラグで同一セッション内のループと無駄なfetchを防ぐ。 -->
 <script>
-  const u = new URL(location.href);
-  if (!u.searchParams.get('t')) {
-    u.searchParams.set('t', Date.now());
-    location.replace(u.toString());
+  if (!sessionStorage.getItem('ks_v1')) {
+    const base = location.pathname;
+    fetch(base, {cache: 'reload'})
+      .then(() => { sessionStorage.setItem('ks_v1', '1'); location.replace(base); })
+      .catch(() => {});
   }
 </script>
 <title>Upper-B｜次回セッション</title>
