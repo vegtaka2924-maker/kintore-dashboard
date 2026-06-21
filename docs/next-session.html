@@ -169,6 +169,15 @@
   .log-assess { margin-top: 10px; padding-left: 12px; border-left: 2px solid var(--oxblood); font-family: var(--serif-jp); font-size: 12.5px; line-height: 1.8; color: var(--ink-soft); }
   .log-assess b { color: var(--oxblood); font-weight: 700; margin-right: 8px; font-family: var(--sans-jp); font-size: 10px; letter-spacing: .14em; }
 
+  /* トレーナーのコメント（アバター付き吹き出し） */
+  .coach { display: flex; gap: 12px; align-items: flex-start; margin: 18px 0 8px; padding: 14px 15px; background: #EFE9DD; border-radius: 12px; }
+  .coach-av { flex-shrink: 0; width: 42px; height: 42px; }
+  .coach-av svg { display: block; }
+  .coach-bubble { flex: 1; }
+  .coach-name { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--oxblood); margin-bottom: 4px; }
+  .coach-bubble p { font-size: 13px; line-height: 1.8; color: var(--ink); }
+  .coach-bubble p b { color: var(--oxblood); font-weight: 700; }
+
   /* 下タブバー（固定） */
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: var(--paper); border-top: 1px solid var(--rule-strong); padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
   .tabbar button { flex: 1; border: 0; background: none; color: var(--ink-faint); cursor: pointer; padding: 9px 0 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: var(--sans-jp); }
@@ -212,6 +221,17 @@
 <script src="src/data.js"></script>
 <script>
   var D = window.KINTORE_DATA;
+
+  /* トレーナーのアバター（紙色の人物＋ヘッドバンド＝コーチ風） */
+  var COACH_SVG = '<svg viewBox="0 0 42 42" width="42" height="42" aria-hidden="true">'
+    + '<circle cx="21" cy="21" r="21" fill="#7C2A22"/>'
+    + '<circle cx="21" cy="16.5" r="7" fill="#F4EFE6"/>'
+    + '<path d="M8 36 Q8 25.5 21 25.5 Q34 25.5 34 36 Z" fill="#F4EFE6"/>'
+    + '<rect x="13" y="11.6" width="16" height="3.2" rx="1.6" fill="#7C2A22"/></svg>';
+  function coachBlock(text) {
+    return '<div class="coach"><div class="coach-av">' + COACH_SVG + '</div>'
+      + '<div class="coach-bubble"><div class="coach-name">専属トレーナー</div><p>' + text + '</p></div></div>';
+  }
 
   function setRow(s) {
     return '<div class="set">'
@@ -267,7 +287,7 @@
   /* 次回タブ */
   function buildNext() {
     var cur = D.sessions[D.currentKey];
-    var h = renderSession(cur);
+    var h = masthead(cur) + (cur.coachIntro ? coachBlock(cur.coachIntro) : '') + sessionInner(cur);
     var last = D.log && D.log[0];
     if (last) {
       var i = D.rotation.indexOf(D.currentKey);
@@ -339,7 +359,7 @@
         + '<div class="log-sum">' + (l.highlights || '') + '</div>'
         + '<div class="log-body" id="lb-' + idx + '"><div class="inner">'
         + (l.detail ? '<div class="log-detail">' + l.detail + '</div>' : '')
-        + (l.assessment ? '<div class="log-assess"><b>評価</b>' + l.assessment + '</div>' : '')
+        + (l.coach ? coachBlock(l.coach) : '')
         + '</div></div></div>';
     });
     h += '</div>';
