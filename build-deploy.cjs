@@ -121,7 +121,7 @@ function validateData(file) {
   // 進捗・ログの最低限
   if (!Array.isArray(D.progress)) errs.push('progress が配列でない');
   if (!Array.isArray(D.log)) errs.push('log が配列でない');
-  if (!D.meta || typeof D.meta.weekNow !== 'number') errs.push('meta.weekNow（数値）が無い');
+  if (!D.meta || typeof D.meta.sessionsDone !== 'number' || typeof D.meta.sessionsTotal !== 'number') errs.push('meta.sessionsDone / sessionsTotal（数値）が無い');
 
   if (errs.length) throw new Error('データ検証失敗（公開を中止）:\n  - ' + errs.join('\n  - '));
   console.log('データ検証OK：4セッション・各種目のweight/reps・why、すべて揃っています。');
