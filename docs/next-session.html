@@ -2,36 +2,34 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- viewport-fit=cover：折りたたみ全画面で下タブバーを安全領域まで広げるため（env(safe-area-inset-bottom)が効くようになる） -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<!-- ホーム画面に「アプリとして」追加するための設定。
-     これがあると、アイコンを押したときにアドレスバーの無い全画面でカードが開く（PWA）。
-     お金・API・クラウドは不要。card.webmanifest が start_url にこのカードを指定している。 -->
+<!-- ホーム画面アプリ（PWA）設定。アイコンを押すと全画面でこのアプリが開く。お金・API不要。 -->
 <link rel="manifest" href="card.webmanifest">
 <meta name="theme-color" content="#7C2A22">
 <link rel="apple-touch-icon" href="icon-card-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="次回トレ">
+<meta name="apple-mobile-web-app-title" content="筋トレ">
 
-<!-- 開くたびに1回だけ、CDNキャッシュを回避してサーバーから最新を取得する。
-     GitHub PagesのCDNはクエリパラメータを無視するため ?t=Date.now() では効かない。
-     fetch の cache:'reload' オプションは「Cache-Control: no-cache」をCDNに送り、
-     CDNを素通りしてGitHubのサーバーから最新を取得してブラウザキャッシュを更新する。
-     その後 location.replace で同じURLに遷移するとブラウザキャッシュ（最新版）が表示される。
-     sessionStorage のフラグで同一セッション内のループと無駄なfetchを防ぐ。 -->
+<!-- 開くたびに1回だけ、CDN(Fastly)キャッシュを回避して本体と data.js の最新を取得する。
+     GitHub PagesのCDNはクエリ無視＋max-age=600なので、cache:'reload' で素通りさせるのが要点。
+     本体と data.js の両方を先読みしてから location.replace で再表示する（中身だけ古い、を防ぐ）。 -->
 <script>
-  if (!sessionStorage.getItem('ks_v1')) {
-    const base = location.pathname;
-    fetch(base, {cache: 'reload'})
-      .then(() => { sessionStorage.setItem('ks_v1', '1'); location.replace(base); })
-      .catch(() => {});
+  if (!sessionStorage.getItem('ks_v2')) {
+    var base = location.pathname;
+    Promise.all([
+      fetch(base, { cache: 'reload' }),
+      fetch('src/data.js', { cache: 'reload' })
+    ]).then(function () {
+      sessionStorage.setItem('ks_v2', '1');
+      location.replace(base);
+    }).catch(function () {});
   }
 </script>
-<title>Lower-B｜次回セッション</title>
+<title>筋トレ｜プログラム・次回・ログ</title>
 
-<!-- 雑誌風タイポ：英字/数字の見出しは Playfair（高コントラストのセリフ）、
-     和文見出しは Noto Serif JP（明朝）、データ・本文は Noto Sans JP（ゴシック）。
-     カードは常にネット接続で開くので、Webフォントを読み込んでもよい（ビルド不要・リンク1本）。 -->
+<!-- 雑誌風タイポ：英数の見出しは Playfair、和文見出しは Noto Serif JP（明朝）、本文は Noto Sans JP。 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Noto+Serif+JP:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
@@ -39,15 +37,14 @@
 <style>
   /* ===== デザイントークン（紙の質感のオフホワイト × オックスブラッド1色） ===== */
   :root {
-    --paper:        #F4EFE6;  /* 温かみのあるオフホワイト＝誌面のベース */
-    --ink:          #211C17;  /* 文字の主色（黒に近い温かいインク） */
-    --ink-soft:     #6E655A;  /* 補足・ラベルの色 */
-    --ink-faint:    #A89E90;  /* ウォームアップや控えめな注記 */
-    --oxblood:      #7C2A22;  /* アクセント1色：オックスブラッド（深い赤） */
-    --oxblood-deep: #5E1F19;  /* 濃いめ（小さい文字でのコントラスト確保） */
-    --rule:         #DCD4C6;  /* 細い罫線 */
-    --rule-strong:  #C3B9A8;  /* 少し強い罫線 */
-
+    --paper:        #F4EFE6;
+    --ink:          #211C17;
+    --ink-soft:     #6E655A;
+    --ink-faint:    #A89E90;
+    --oxblood:      #7C2A22;
+    --oxblood-deep: #5E1F19;
+    --rule:         #DCD4C6;
+    --rule-strong:  #C3B9A8;
     --serif-latin: "Playfair Display", "Noto Serif JP", serif;
     --serif-jp:    "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
     --sans-jp:     "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
@@ -61,430 +58,397 @@
     font-family: var(--sans-jp);
     font-size: 15px;
     line-height: 1.7;
-    /* 数字は等幅で桁を揃える（誌面の数表らしさ） */
     font-feature-settings: "tnum" 1;
     -webkit-font-smoothing: antialiased;
+    /* 下の固定タブバーに隠れないよう余白を確保 */
+    padding-bottom: calc(78px + env(safe-area-inset-bottom));
   }
 
-  /* 狭い画面（折りたたみ時）優先。大画面では中央寄せで快適に。 */
-  .sheet {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 26px 22px 40px;
-  }
+  .sheet { max-width: 600px; margin: 0 auto; padding: 26px 22px 28px; }
 
-  /* 小さなラベル（小型大文字・字間広め）。誌面の見出し小物に多用。 */
   .kicker {
     font-family: var(--sans-jp);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .22em;
-    text-transform: uppercase;
-    color: var(--oxblood);
+    font-size: 11px; font-weight: 700; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--oxblood);
   }
 
   /* ===== 題字（マストヘッド） ===== */
   .masthead { margin-bottom: 26px; }
   .masthead-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding-bottom: 9px;
-    border-bottom: 2px solid var(--ink);
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 9px; border-bottom: 2px solid var(--ink);
   }
   .masthead-top .date {
-    font-family: var(--serif-latin);
-    font-size: 13px;
-    font-style: italic;
-    color: var(--ink-soft);
+    font-family: var(--serif-latin); font-size: 13px; font-style: italic; color: var(--ink-soft);
   }
   .title {
-    font-family: var(--serif-latin);
-    font-weight: 700;
-    font-size: 54px;
-    line-height: 1.02;
-    letter-spacing: -.01em;
-    margin: 14px 0 2px;
+    font-family: var(--serif-latin); font-weight: 700; font-size: 54px;
+    line-height: 1.02; letter-spacing: -.01em; margin: 14px 0 2px;
   }
+  .title.sm { font-size: 30px; line-height: 1.12; }
   .title-jp {
-    font-family: var(--serif-jp);
-    font-weight: 600;
-    font-size: 19px;
-    letter-spacing: .04em;
-    color: var(--ink);
+    font-family: var(--serif-jp); font-weight: 600; font-size: 19px;
+    letter-spacing: .04em; color: var(--ink);
   }
   .lede {
-    font-family: var(--serif-jp);
-    font-size: 13.5px;
-    color: var(--ink-soft);
-    margin-top: 9px;
-    padding-top: 9px;
-    border-top: 1px solid var(--rule);
+    font-family: var(--serif-jp); font-size: 13.5px; color: var(--ink-soft);
+    margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--rule);
   }
   .lede .min { color: var(--oxblood); font-weight: 600; }
 
-  /* ===== 仕上がり予告（鍛えると、こうなる） ===== */
+  /* ===== 仕上がり予告 ===== */
   .payoff { margin: 22px 0 6px; }
   .payoff .k { display: block; margin-bottom: 10px; }
   .payoff-item {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 14px;
-    align-items: baseline;
-    padding: 9px 0;
-    border-top: 1px solid var(--rule);
+    display: grid; grid-template-columns: auto 1fr; gap: 14px;
+    align-items: baseline; padding: 9px 0; border-top: 1px solid var(--rule);
   }
   .po-target {
-    font-family: var(--serif-jp);
-    font-weight: 600;
-    font-size: 17px;
-    color: var(--oxblood);
-    white-space: nowrap;
+    font-family: var(--serif-jp); font-weight: 600; font-size: 17px;
+    color: var(--oxblood); white-space: nowrap;
   }
   .po-text { font-size: 13.5px; line-height: 1.65; color: var(--ink); }
 
-  /* ===== 進行ルール（短い前書き） ===== */
-  .rulenote {
-    margin: 20px 0 6px;
-    padding-left: 14px;
-    border-left: 2px solid var(--oxblood);
-  }
+  /* ===== 進行ルール ===== */
+  .rulenote { margin: 20px 0 6px; padding-left: 14px; border-left: 2px solid var(--oxblood); }
   .rulenote .k { display: block; margin-bottom: 2px; }
   .rulenote p { font-size: 13.5px; color: var(--ink); }
   .rulenote strong { font-weight: 700; }
 
-  /* ===== 種目（記事ブロック） ===== */
-  .exercise {
-    padding: 22px 0 18px;
-    border-top: 1px solid var(--rule);
-  }
+  /* ===== 種目 ===== */
+  .exercise { padding: 22px 0 18px; border-top: 1px solid var(--rule); }
   .exercise:first-of-type { border-top: 2px solid var(--ink); }
-
-  .ex-head {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 12px;
-  }
+  .ex-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
   .ex-no {
-    font-family: var(--serif-latin);
-    font-weight: 700;
-    font-size: 40px;
-    line-height: .9;
-    color: var(--oxblood);
-    flex-shrink: 0;
-    min-width: 52px;
+    font-family: var(--serif-latin); font-weight: 700; font-size: 40px;
+    line-height: .9; color: var(--oxblood); flex-shrink: 0; min-width: 52px;
   }
   .ex-titles { flex: 1; padding-top: 2px; }
-  .ex-name {
-    font-family: var(--serif-jp);
-    font-weight: 600;
-    font-size: 20px;
-    line-height: 1.3;
-    letter-spacing: .01em;
-  }
+  .ex-name { font-family: var(--serif-jp); font-weight: 600; font-size: 20px; line-height: 1.3; letter-spacing: .01em; }
   .ex-tag {
-    display: inline-block;
-    margin-top: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
+    display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft);
   }
   .ex-tag::before { content: "— "; color: var(--rule-strong); }
 
-  /* セット表：ラベル / 内容 / 休憩 の3列を罫線で区切る */
   .sets { margin-left: 66px; }
   @media (max-width: 360px) { .sets { margin-left: 0; } }
-
   .set {
-    display: grid;
-    grid-template-columns: 40px 1fr auto;
-    align-items: baseline;
-    gap: 10px;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--rule);
+    display: grid; grid-template-columns: 56px 1fr auto; align-items: baseline;
+    gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule);
   }
   .set:last-child { border-bottom: none; }
-
-  .set-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    color: var(--ink-soft);
-  }
+  .set-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--ink-soft); }
   .set-label.warm { color: var(--ink-faint); }
-
   .set-detail { font-size: 16px; font-weight: 500; }
   .set-detail .x { color: var(--ink-faint); font-weight: 400; }
   .set-detail .reps { color: var(--ink-soft); font-weight: 400; }
+  .accent { color: var(--oxblood); font-weight: 700; letter-spacing: .06em; }
+  .set-rest { font-family: var(--serif-latin); font-style: italic; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
 
-  /* 強調（AMRAP・ドロップセット）はオックスブラッドの小型大文字 */
-  .accent {
-    color: var(--oxblood);
-    font-weight: 700;
-    letter-spacing: .06em;
-  }
-
-  .set-rest {
-    font-family: var(--serif-latin);
-    font-style: italic;
-    font-size: 12.5px;
-    color: var(--ink-soft);
-    white-space: nowrap;
-  }
-
-  /* ワンポイント（記事の傍注らしく明朝イタリック寄り） */
   .tip {
-    margin: 12px 0 0 66px;
-    padding-left: 13px;
-    border-left: 1px solid var(--oxblood);
-    font-family: var(--serif-jp);
-    font-size: 13px;
-    line-height: 1.75;
-    color: var(--ink-soft);
+    margin: 12px 0 0 66px; padding-left: 13px; border-left: 1px solid var(--oxblood);
+    font-family: var(--serif-jp); font-size: 13px; line-height: 1.75; color: var(--ink-soft);
   }
   @media (max-width: 360px) { .tip { margin-left: 0; } }
-
-  /* 「なぜこの重量・回数か」＝設定の理由。コツ（.tip）とは別物として、
-     罫線なし・小さめの本文で、考え方を落ち着いて読ませる。 */
-  .why {
-    margin: 12px 0 0 66px;
-    font-size: 12.5px;
-    line-height: 1.75;
-    color: var(--ink-soft);
-  }
+  .why { margin: 12px 0 0 66px; font-size: 12.5px; line-height: 1.75; color: var(--ink-soft); }
   @media (max-width: 360px) { .why { margin-left: 0; } }
   .why .lbl {
-    font-family: var(--sans-jp);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .16em;
-    text-transform: uppercase;
-    color: var(--oxblood);
-    margin-right: 8px;
+    font-family: var(--sans-jp); font-size: 10px; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--oxblood); margin-right: 8px;
   }
 
-  /* スーパーセットの流れ */
-  .ss-flow {
-    margin: 4px 0 14px 66px;
-    padding: 13px 16px;
-    border: 1px solid var(--rule-strong);
-  }
+  .ss-flow { margin: 4px 0 14px 66px; padding: 13px 16px; border: 1px solid var(--rule-strong); }
   @media (max-width: 360px) { .ss-flow { margin-left: 0; } }
-  .ss-flow .step {
-    font-family: var(--serif-jp);
-    font-weight: 600;
-    font-size: 14.5px;
-  }
-  .ss-flow .arrow {
-    display: block;
-    font-size: 11px;
-    letter-spacing: .1em;
-    color: var(--oxblood);
-    margin: 3px 0;
-  }
+  .ss-flow .step { font-family: var(--serif-jp); font-weight: 600; font-size: 14.5px; }
+  .ss-flow .arrow { display: block; font-size: 11px; letter-spacing: .1em; color: var(--oxblood); margin: 3px 0; }
 
-  /* サブ見出し（種目内の小分け） */
   .subhead {
-    margin: 14px 0 2px 66px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--oxblood);
+    margin: 14px 0 2px 66px; font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--oxblood);
   }
   @media (max-width: 360px) { .subhead { margin-left: 0; } }
   .subhead + .sets { margin-top: 4px; }
 
   /* ===== 奥付（前号の記録） ===== */
-  .colophon {
-    margin-top: 34px;
-    padding-top: 16px;
-    border-top: 2px solid var(--ink);
-  }
+  .colophon { margin-top: 34px; padding-top: 16px; border-top: 2px solid var(--ink); }
   .colophon .k { display: block; margin-bottom: 10px; }
-  .colophon dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
-  .colophon dt {
-    font-family: var(--serif-jp);
-    font-size: 13px;
-    color: var(--ink-soft);
-    white-space: nowrap;
-  }
-  .colophon dd {
-    font-size: 14px;
-    font-weight: 500;
-  }
+  .colo-hl { font-size: 14px; font-weight: 500; line-height: 1.7; }
   .colophon .next {
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--rule);
-    font-family: var(--serif-jp);
-    font-size: 13px;
-    color: var(--ink-soft);
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule);
+    font-family: var(--serif-jp); font-size: 13px; color: var(--ink-soft);
   }
   .colophon .next b { color: var(--oxblood); font-weight: 700; }
+
+  /* ===== タブの表示切替 ===== */
+  .panel { display: none; }
+  .panel.show { display: block; }
+
+  /* ===== ローテーション ===== */
+  .rotation { display: flex; gap: 6px; margin: 20px 0 24px; }
+  .rot {
+    flex: 1; border: 1px solid var(--rule-strong); background: none; border-radius: 6px;
+    padding: 11px 4px; font-family: var(--serif-jp); font-size: 15px; color: var(--ink-soft);
+    cursor: pointer; line-height: 1.2;
+  }
+  .rot.now { background: var(--oxblood); border-color: var(--oxblood); color: var(--paper); }
+  .rot em { font-style: normal; font-size: 11px; display: block; margin-top: 3px; letter-spacing: .1em; }
+  @media (max-width: 360px) { .rot { font-size: 13px; padding: 10px 2px; } }
+
+  /* ===== 週・フェーズ進捗 ===== */
+  .prog-week { margin: 4px 0 26px; }
+  .pw-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .pw-week { font-family: var(--serif-latin); font-style: italic; font-size: 13px; color: var(--ink-soft); }
+  .pw-bar { height: 8px; background: var(--rule); border-radius: 4px; overflow: hidden; margin: 8px 0 10px; }
+  .pw-fill { height: 100%; background: var(--oxblood); }
+  .pw-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
+
+  /* ===== 主要種目の伸び ===== */
+  .growth { margin-top: 8px; }
+  .growth .k { display: block; margin-bottom: 4px; }
+  .grow-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 10px 0; border-top: 1px solid var(--rule);
+  }
+  .gl { font-family: var(--serif-jp); font-size: 15px; }
+  .gv { font-size: 15px; }
+  .gv .from { color: var(--ink-faint); font-size: 13px; }
+  .gv b { font-weight: 600; }
+  .gv .up { color: var(--oxblood); font-weight: 700; font-size: 13px; margin-left: 5px; }
+
+  /* ===== 詳細ビューの戻る ===== */
+  .back {
+    border: 0; background: none; color: var(--oxblood); font-family: var(--sans-jp);
+    font-size: 13px; font-weight: 700; letter-spacing: .04em; cursor: pointer; padding: 0 0 16px;
+  }
+
+  /* ===== ログ ===== */
+  .logs { border-top: 2px solid var(--ink); margin-top: 4px; }
+  .log-item { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .log-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .log-date { font-family: var(--serif-jp); font-weight: 600; font-size: 15px; }
+  .log-min { font-family: var(--serif-latin); font-style: italic; font-size: 12.5px; color: var(--ink-soft); }
+  .log-hl { font-size: 13px; color: var(--ink-soft); margin-top: 3px; line-height: 1.7; }
+
+  /* ===== 下タブバー（固定） ===== */
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; display: flex;
+    background: var(--paper); border-top: 1px solid var(--rule-strong);
+    padding-bottom: env(safe-area-inset-bottom); z-index: 50;
+  }
+  .tabbar button {
+    flex: 1; border: 0; background: none; color: var(--ink-faint); cursor: pointer;
+    padding: 9px 0 7px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-family: var(--sans-jp);
+  }
+  .tabbar button .lbl { font-size: 11px; letter-spacing: .06em; }
+  .tabbar button.active { color: var(--oxblood); box-shadow: inset 0 2px 0 var(--oxblood); }
+  .tabbar svg { display: block; }
+
+  /* ===== 折りたたみ：開いた大画面 ===== */
+  @media (min-width: 760px) {
+    .sheet { max-width: 720px; }
+    .payoff { display: grid; grid-template-columns: 1fr 1fr; column-gap: 30px; }
+    .payoff .k { grid-column: 1 / -1; }
+  }
 </style>
 </head>
 <body>
-<div class="sheet">
 
-  <!-- ===== 題字 ===== -->
-  <header class="masthead">
-    <div class="masthead-top">
-      <span class="kicker">Next Session</span>
-      <span class="date">Lower / B</span>
-    </div>
-    <h1 class="title">Lower-B</h1>
-    <div class="title-jp">脚 ・ ハム＆お尻</div>
-    <p class="lede">RDLでハム・お尻を重め、スクワットは軽めで維持。レッグプレス＆カーフで仕上げ　／　目安 <span class="min">75分</span></p>
-  </header>
-
-  <!-- ===== 仕上がり予告（鍛えると、こうなる） ===== -->
-  <section class="payoff">
-    <span class="kicker k">鍛えると、こうなる</span>
-    <div class="payoff-item">
-      <span class="po-target">ハム・お尻</span>
-      <span class="po-text">RDLで後ろももとお尻に張りが出て、後ろ姿のラインが引き締まる。股関節が強くなり、全種目の土台になる。</span>
-    </div>
-    <div class="payoff-item">
-      <span class="po-target">脚全体</span>
-      <span class="po-text">スクワットとレッグプレスで太ももに厚み。ズボンの中が埋まる、地に足のついた脚へ。</span>
-    </div>
-    <div class="payoff-item">
-      <span class="po-target">ふくらはぎ</span>
-      <span class="po-text">カーフで下腿が締まり、脚全体のバランスが整う。立ち姿・歩き姿に安定感が出る。</span>
+<main>
+  <section id="tab-program" class="panel">
+    <div class="sheet">
+      <div id="prog-list"></div>
+      <div id="prog-detail" style="display:none"></div>
     </div>
   </section>
 
-  <!-- ===== 進行ルール ===== -->
-  <div class="rulenote">
-    <span class="kicker k">2-up rule</span>
-    <p><strong>全セットで上限回数を達成</strong>したら、次回 +2.5〜5kg。</p>
-  </div>
+  <section id="tab-next" class="panel">
+    <div class="sheet" id="next-sheet"></div>
+  </section>
 
-  <!-- ===== 01 RDL（メイン・重め） ===== -->
-  <article class="exercise">
-    <div class="ex-head">
-      <div class="ex-no">01</div>
-      <div class="ex-titles">
-        <div class="ex-name">RDL（ルーマニアンデッドリフト）</div>
-        <span class="ex-tag">ハム・お尻・メイン</span>
-      </div>
-    </div>
-    <div class="sets">
-      <div class="set">
-        <span class="set-label warm">W1</span>
-        <span class="set-detail">60kg <span class="x">×</span> <span class="reps">8回</span></span>
-        <span class="set-rest"></span>
-      </div>
-      <div class="set">
-        <span class="set-label warm">W2</span>
-        <span class="set-detail">80kg <span class="x">×</span> <span class="reps">3回</span></span>
-        <span class="set-rest"></span>
-      </div>
-      <div class="set">
-        <span class="set-label">M1</span>
-        <span class="set-detail">80〜90kg <span class="x">×</span> <span class="reps">6〜10回</span></span>
-        <span class="set-rest">rest 3 min</span>
-      </div>
-      <div class="set">
-        <span class="set-label">M2</span>
-        <span class="set-detail">80〜90kg <span class="x">×</span> <span class="reps">6〜10回</span></span>
-        <span class="set-rest">rest 3 min</span>
-      </div>
-      <div class="set">
-        <span class="set-label">M3</span>
-        <span class="set-detail">80〜90kg <span class="x">×</span> <span class="accent">AMRAP ★</span></span>
-        <span class="set-rest">rest 3 min</span>
-      </div>
-    </div>
-    <p class="why"><span class="lbl">なぜ</span>RDLはハム・お尻という大きな筋肉を使うので高重量を扱える種目。だからこの日の「主役（伸ばす種目）」に置き、Lower-Aより重めにしている。6〜10回は筋肥大に最も効率的とされる回数域で、重い負荷をある程度の回数こなすと筋肉が一番育つ。M3だけAMRAP（限界まで）にして、毎回の伸びを測る。</p>
-    <p class="tip">膝でなく股関節から折る。背中はまっすぐ、バーは脛に沿わせて下ろす。後ろももが伸びるのを感じる位置まで。Lower-AのRDLより重め、Phase2から重量を上げていく。</p>
-  </article>
+  <section id="tab-log" class="panel">
+    <div class="sheet" id="log-sheet"></div>
+  </section>
+</main>
 
-  <!-- ===== 02 スクワット（軽め・維持） ===== -->
-  <article class="exercise">
-    <div class="ex-head">
-      <div class="ex-no">02</div>
-      <div class="ex-titles">
-        <div class="ex-name">バーベルスクワット<br>or ハックスクワット（軽め）</div>
-        <span class="ex-tag">脚・維持</span>
-      </div>
-    </div>
-    <div class="sets">
-      <div class="set">
-        <span class="set-label">M1</span>
-        <span class="set-detail">70kg <span class="x">×</span> <span class="reps">10〜12回</span></span>
-        <span class="set-rest">rest 2–3 min</span>
-      </div>
-      <div class="set">
-        <span class="set-label">M2</span>
-        <span class="set-detail">70kg <span class="x">×</span> <span class="reps">10〜12回</span></span>
-        <span class="set-rest">rest 2–3 min</span>
-      </div>
-      <div class="set">
-        <span class="set-label">M3</span>
-        <span class="set-detail">70kg <span class="x">×</span> <span class="accent">AMRAP ★</span></span>
-        <span class="set-rest">rest 2–3 min</span>
-      </div>
-    </div>
-    <p class="why"><span class="lbl">なぜ</span>同じ日にRDLで脚を追い込むので、スクワットは「今ある力を維持する」のが目的。Lower-Aより軽く・高回数（10〜12回）にして、腰や膝の負担を抑えつつ脚への刺激は残す。ここで重量を欲張ると、回復が間に合わず次のセッションに響く。</p>
-    <p class="tip">Lower-Aより-5〜10kg・高回数で「重量を維持」するのが狙い。今日はRDLが主役なので、ここは追い込みすぎない。</p>
-  </article>
+<nav class="tabbar">
+  <button data-tab="program" onclick="showTab('program')" aria-label="プログラム">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="7" x2="18" y2="7"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="17" x2="13" y2="17"/></svg>
+    <span class="lbl">プログラム</span>
+  </button>
+  <button data-tab="next" onclick="showTab('next')" aria-label="次回">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="6" r="2.4"/><path d="M6 10 Q12 8.4 18 10 L15.5 19 Q12 19.8 8.5 19 Z"/></svg>
+    <span class="lbl">次回</span>
+  </button>
+  <button data-tab="log" onclick="showTab('log')" aria-label="ログ">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 l3 2"/></svg>
+    <span class="lbl">ログ</span>
+  </button>
+</nav>
 
-  <!-- ===== 03 レッグプレス ===== -->
-  <article class="exercise">
-    <div class="ex-head">
-      <div class="ex-no">03</div>
-      <div class="ex-titles">
-        <div class="ex-name">レッグプレス</div>
-        <span class="ex-tag">脚・追い込み</span>
-      </div>
-    </div>
-    <div class="sets">
-      <div class="set">
-        <span class="set-label">M1–3</span>
-        <span class="set-detail">160〜170kg <span class="x">×</span> <span class="reps">10〜15回</span></span>
-        <span class="set-rest">rest 2 min</span>
-      </div>
-    </div>
-    <p class="why"><span class="lbl">なぜ</span>マシンなのでフォームが安定し、疲れていても安全に追い込める。RDL・スクワットで土台を使った後の「仕上げ」なので、10〜15回の中〜高回数で筋肉に最後の刺激と血流（パンプ）を入れる。フリーウェイトで限界まで攻めるとケガのリスクが上がる場面を、マシンが肩代わりしてくれる。</p>
-    <p class="tip">足の位置で効く場所が変わる。ハム・お尻を狙うなら足を少し高め・広めに。膝は伸ばしきらず、最後まで力を抜かない。</p>
-  </article>
+<script src="src/data.js"></script>
+<script>
+  var D = window.KINTORE_DATA;
 
-  <!-- ===== 04 カーフレイズ ===== -->
-  <article class="exercise">
-    <div class="ex-head">
-      <div class="ex-no">04</div>
-      <div class="ex-titles">
-        <div class="ex-name">カーフレイズ（マシン）</div>
-        <span class="ex-tag">ふくらはぎ</span>
-      </div>
-    </div>
-    <div class="sets">
-      <div class="set">
-        <span class="set-label">M1–3</span>
-        <span class="set-detail">60〜70kg <span class="x">×</span> <span class="reps">20回</span></span>
-        <span class="set-rest">rest 90 sec</span>
-      </div>
-    </div>
-    <p class="why"><span class="lbl">なぜ</span>ふくらはぎは日常の歩行で常に使われる持久的な筋肉なので、軽い負荷で少ない回数では刺激が足りない。だから20回という高回数で攻める。重量よりも「フルに伸ばして・縮める可動域」を稼ぐことが効かせるコツ。</p>
-    <p class="tip">一番下までかかとを落として伸ばし、一番上で1秒止める。可動域いっぱいに大きく動かすのがふくらはぎのコツ。</p>
-  </article>
+  /* ---- 描画ヘルパー ---- */
+  function setRow(s) {
+    return '<div class="set">'
+      + '<span class="set-label' + (s.warm ? ' warm' : '') + '">' + s.label + '</span>'
+      + '<span class="set-detail">' + (s.weight ? s.weight + ' <span class="x">×</span> ' : '')
+      + '<span class="' + (s.accent ? 'accent' : 'reps') + '">' + s.reps + '</span></span>'
+      + '<span class="set-rest">' + (s.rest || '') + '</span>'
+      + '</div>';
+  }
+  function setsBlock(sets) { return '<div class="sets">' + sets.map(setRow).join('') + '</div>'; }
 
-  <!-- ===== 奥付：前号の記録 ===== -->
-  <footer class="colophon">
-    <span class="kicker k">前号の記録 ・ Last Session — Upper-B（2026-06-22）</span>
-    <dl>
-      <dt>ショルダープレス</dt><dd>54kg × 12 ・ 10 ・ 7</dd>
-      <dt>ペックデック</dt><dd>54kg × 12 ・ 12 ・ 11</dd>
-      <dt>EZバーカール</dt><dd>30kg × 12 ・ 6</dd>
-    </dl>
-    <p class="next">次の次は <b>Upper-A</b>（BBベンチ・懸垂・インクライン）</p>
-  </footer>
+  function renderExercise(ex) {
+    var h = '<article class="exercise"><div class="ex-head"><div class="ex-no">' + ex.no + '</div>'
+      + '<div class="ex-titles"><div class="ex-name">' + ex.name + '</div>'
+      + (ex.tag ? '<span class="ex-tag">' + ex.tag + '</span>' : '') + '</div></div>';
+    if (ex.superset) {
+      h += '<div class="ss-flow"><span class="step">' + ex.superset.steps[0] + '</span>'
+        + '<span class="arrow">↓　休まずそのまま</span>'
+        + '<span class="step">' + ex.superset.steps[1] + '</span>'
+        + '<span class="arrow">↓　' + ex.superset.note + '</span></div>';
+    }
+    if (ex.subgroups) {
+      ex.subgroups.forEach(function (sg) {
+        h += '<div class="subhead">' + sg.subhead + '</div>' + setsBlock(sg.sets);
+        if (sg.tip) h += '<p class="tip">' + sg.tip + '</p>';
+      });
+    } else if (ex.sets) {
+      h += setsBlock(ex.sets);
+    }
+    if (ex.why) h += '<p class="why"><span class="lbl">なぜ</span>' + ex.why + '</p>';
+    if (ex.tip) h += '<p class="tip">' + ex.tip + '</p>';
+    return h + '</article>';
+  }
 
-</div>
+  function renderSession(s) {
+    var h = '<header class="masthead"><div class="masthead-top">'
+      + '<span class="kicker">Next Session</span>'
+      + '<span class="date">' + s.name.replace('-', ' / ') + '</span></div>'
+      + '<h1 class="title">' + s.name + '</h1>'
+      + '<div class="title-jp">' + s.titleJp + '</div>'
+      + '<p class="lede">' + s.lede + '　／　目安 <span class="min">' + s.minutes + '分</span></p></header>';
+    if (s.payoff && s.payoff.length) {
+      h += '<section class="payoff"><span class="kicker k">鍛えると、こうなる</span>';
+      s.payoff.forEach(function (p) {
+        h += '<div class="payoff-item"><span class="po-target">' + p.target + '</span>'
+          + '<span class="po-text">' + p.text + '</span></div>';
+      });
+      h += '</section>';
+    }
+    if (s.rule) h += '<div class="rulenote"><span class="kicker k">2-up rule</span><p>' + s.rule + '</p></div>';
+    s.exercises.forEach(function (ex) { h += renderExercise(ex); });
+    return h;
+  }
+
+  function fmtDate(d) { var p = d.split('-'); return (+p[1]) + '/' + (+p[2]); }
+
+  /* ---- 各タブの中身を組み立て ---- */
+  function buildNext() {
+    var cur = D.sessions[D.currentKey];
+    var h = renderSession(cur);
+    var last = D.log && D.log[0];
+    if (last) {
+      var i = D.rotation.indexOf(D.currentKey);
+      var nn = D.sessions[D.rotation[(i + 1) % D.rotation.length]];
+      var lastName = D.sessions[last.sessionKey] ? D.sessions[last.sessionKey].name : last.sessionKey;
+      h += '<footer class="colophon">'
+        + '<span class="kicker k">前号の記録 ・ Last Session — ' + lastName + '（' + last.date + '）</span>'
+        + '<p class="colo-hl">' + last.highlights + '</p>'
+        + '<p class="next">次の次は <b>' + nn.name + '</b>（' + nn.titleJp + '）</p></footer>';
+    }
+    document.getElementById('next-sheet').innerHTML = h;
+  }
+
+  function buildProgram() {
+    var m = D.meta;
+    var pct = Math.round(m.weekNow / m.weekTotal * 100);
+    var h = '<header class="masthead"><div class="masthead-top">'
+      + '<span class="kicker">Program</span>'
+      + '<span class="date">Week ' + m.weekNow + ' / ' + m.weekTotal + '</span></div>'
+      + '<h1 class="title sm">プログラム</h1>'
+      + '<div class="title-jp">' + m.splitName + '</div>'
+      + '<p class="lede">' + m.overview + '</p></header>';
+
+    h += '<div class="rotation">';
+    D.rotation.forEach(function (k) {
+      var now = (k === D.currentKey);
+      h += '<button class="rot' + (now ? ' now' : '') + '" onclick="openSession(\'' + k + '\')">'
+        + D.sessions[k].name + (now ? ' <em>次</em>' : '') + '</button>';
+    });
+    h += '</div>';
+
+    h += '<div class="prog-week"><div class="pw-row"><span class="kicker">進捗</span>'
+      + '<span class="pw-week">Week ' + m.weekNow + ' / ' + m.weekTotal + '</span></div>'
+      + '<div class="pw-bar"><div class="pw-fill" style="width:' + pct + '%"></div></div>'
+      + '<p class="pw-note">' + m.phaseNote + '</p></div>';
+
+    h += '<div class="growth"><span class="kicker k">主要種目の伸び（開始 → 現在）</span>';
+    D.progress.forEach(function (p) {
+      var up = (p.current > p.start) ? ' <span class="up">+' + (p.current - p.start) + '</span>' : '';
+      h += '<div class="grow-row"><span class="gl">' + p.lift + '</span>'
+        + '<span class="gv"><span class="from">' + p.start + ' →</span> <b>' + p.current + p.unit + '</b>' + up + '</span></div>';
+    });
+    h += '</div>';
+
+    document.getElementById('prog-list').innerHTML = h;
+  }
+
+  function buildLog() {
+    var h = '<header class="masthead"><div class="masthead-top">'
+      + '<span class="kicker">Log</span><span class="date">' + D.log.length + ' sessions</span></div>'
+      + '<h1 class="title sm">これまでの記録</h1></header>';
+    h += '<div class="logs">';
+    D.log.forEach(function (l) {
+      var nm = D.sessions[l.sessionKey] ? D.sessions[l.sessionKey].name : l.sessionKey;
+      h += '<div class="log-item"><div class="log-top">'
+        + '<span class="log-date">' + fmtDate(l.date) + ' ' + nm + '</span>'
+        + '<span class="log-min">' + (l.minutes ? l.minutes + '分' : '') + '</span></div>'
+        + '<div class="log-hl">' + l.highlights + '</div></div>';
+    });
+    h += '</div>';
+    document.getElementById('log-sheet').innerHTML = h;
+  }
+
+  /* ---- タブ切替（show/hide） ---- */
+  function showTab(name) {
+    var panels = document.querySelectorAll('.panel');
+    for (var i = 0; i < panels.length; i++) panels[i].classList.remove('show');
+    document.getElementById('tab-' + name).classList.add('show');
+    var btns = document.querySelectorAll('.tabbar button');
+    for (var j = 0; j < btns.length; j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-tab') === name);
+    try { sessionStorage.setItem('ks_tab', name); } catch (e) {}
+    closeDetailView();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---- プログラム内：セッション詳細（タブ内プッシュ遷移＋Android戻る対応） ---- */
+  function openSession(key) {
+    if (key === D.currentKey) { showTab('next'); return; }   // 今ここ → 次回タブへ
+    var d = document.getElementById('prog-detail');
+    d.innerHTML = '<button class="back" onclick="history.back()">‹ プログラムに戻る</button>' + renderSession(D.sessions[key]);
+    document.getElementById('prog-list').style.display = 'none';
+    d.style.display = 'block';
+    window.scrollTo(0, 0);
+    history.pushState({ detail: key }, '');
+  }
+  function closeDetailView() {
+    document.getElementById('prog-detail').style.display = 'none';
+    document.getElementById('prog-list').style.display = 'block';
+  }
+  window.addEventListener('popstate', closeDetailView);
+
+  /* ---- 起動 ---- */
+  buildNext();
+  buildProgram();
+  buildLog();
+  var start = 'next';
+  try { start = sessionStorage.getItem('ks_tab') || D.meta.defaultTab || 'next'; } catch (e) { start = D.meta.defaultTab || 'next'; }
+  showTab(start);
+</script>
 </body>
 </html>

@@ -70,11 +70,62 @@ self.addEventListener('activate', e => e.waitUntil((async () => {
   const leaked = FORBIDDEN.filter(n => fs.existsSync(path.join(OUT, n)));
   if (leaked.length) throw new Error('公開フォルダに禁止物が混入: ' + leaked.join(', '));
 
+  // 5b) データ検証：src/data.js（アプリの真実源）が壊れていないか確認する。
+  //   AIが毎セッション data.js を編集する運用なので、欠けたまま公開しないよう
+  //   ここで止める。非エンジニアでも「ビルドが赤くなったら公開しない」で守れる安全網。
+  validateData(path.join(OUT, 'src', 'data.js'));
+
   const list = fs.readdirSync(OUT);
   console.log('docs/ を生成しました（v' + version + '）。内容:', list.join(', '));
   console.log('→ GitHub Pages（main / docs）か、https://app.netlify.com/drop へドラッグで公開。健康データ（CSV）は含まれていません。');
   return list;
 }
 
-module.exports = { build };
+// src/data.js を読み込んで中身を検証する。問題があれば throw してビルドを失敗させる。
+function validateData(file) {
+  if (!fs.existsSync(file)) throw new Error('データ検証失敗: src/data.js が見つかりません');
+  const code = fs.readFileSync(file, 'utf8');
+  // window.KINTORE_DATA を取り出すため、最小の window を用意して評価する。
+  const sandbox = { window: {} };
+  try { new Function('window', code)(sandbox.window); }
+  catch (e) { throw new Error('データ検証失敗: src/data.js の構文エラー → ' + e.message); }
+  const D = sandbox.window.KINTORE_DATA;
+  const errs = [];
+  if (!D) throw new Error('データ検証失敗: window.KINTORE_DATA がありません');
+
+  // ローテーション4種と currentKey
+  const need = ['upperA', 'lowerA', 'upperB', 'lowerB'];
+  for (const k of need) if (!D.sessions || !D.sessions[k]) errs.push('セッション不足: ' + k);
+  if (!D.rotation || D.rotation.length !== 4) errs.push('rotation は4要素必要');
+  if (!D.currentKey || !(D.sessions && D.sessions[D.currentKey])) errs.push('currentKey が不正: ' + D.currentKey);
+
+  // 各セッションの各種目に weight/reps と why があるか
+  for (const k of Object.keys(D.sessions || {})) {
+    const s = D.sessions[k];
+    if (!s.name || !s.exercises || !s.exercises.length) { errs.push(k + ': name か exercises が空'); continue; }
+    s.exercises.forEach((ex, idx) => {
+      const where = k + ' 種目' + (idx + 1) + '(' + (ex.name || '?') + ')';
+      if (!ex.why || !String(ex.why).trim()) errs.push(where + ': why が空');
+      // sets か subgroups のどちらかに、weight と reps の揃ったセットが必要
+      const groups = ex.subgroups ? ex.subgroups.map(g => g.sets) : [ex.sets];
+      let count = 0;
+      groups.forEach(sets => (sets || []).forEach(st => {
+        count++;
+        if (!st.weight || !String(st.weight).trim()) errs.push(where + ': weight が空のセット');
+        if (!st.reps || !String(st.reps).trim()) errs.push(where + ': reps が空のセット');
+      }));
+      if (!count) errs.push(where + ': セットが無い');
+    });
+  }
+
+  // 進捗・ログの最低限
+  if (!Array.isArray(D.progress)) errs.push('progress が配列でない');
+  if (!Array.isArray(D.log)) errs.push('log が配列でない');
+  if (!D.meta || typeof D.meta.weekNow !== 'number') errs.push('meta.weekNow（数値）が無い');
+
+  if (errs.length) throw new Error('データ検証失敗（公開を中止）:\n  - ' + errs.join('\n  - '));
+  console.log('データ検証OK：4セッション・各種目のweight/reps・why、すべて揃っています。');
+}
+
+module.exports = { build, validateData };
 if (require.main === module) build();
