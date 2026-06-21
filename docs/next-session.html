@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ホーム画面に「アプリとして」追加するための設定。
+     これがあると、アイコンを押したときにアドレスバーの無い全画面でカードが開く（PWA）。
+     お金・API・クラウドは不要。card.webmanifest が start_url にこのカードを指定している。 -->
+<link rel="manifest" href="card.webmanifest">
+<meta name="theme-color" content="#7C2A22">
+<link rel="apple-touch-icon" href="icon-card.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="次回トレ">
+
 <!-- 開くたびに1回だけ、CDNキャッシュを回避してサーバーから最新を取得する。
      GitHub PagesのCDNはクエリパラメータを無視するため ?t=Date.now() では効かない。
      fetch の cache:'reload' オプションは「Cache-Control: no-cache」をCDNに送り、

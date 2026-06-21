@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- ホーム画面アイコン。カードの雑誌風デザイン（オックスブラッド×紙色）に合わせる。
+       中央のダンベルは安全領域（中心80%）に収め、丸く切り抜かれても欠けないようにする。 -->
+  <rect width="192" height="192" rx="42" fill="#7C2A22"/>
+  <g fill="#F4EFE6">
+    <!-- バー（持ち手） -->
+    <rect x="56" y="89" width="80" height="14" rx="7"/>
+    <!-- 内側プレート（左右） -->
+    <rect x="44" y="68" width="16" height="56" rx="5"/>
+    <rect x="132" y="68" width="16" height="56" rx="5"/>
+    <!-- 外側プレート（左右） -->
+    <rect x="26" y="78" width="14" height="36" rx="5"/>
+    <rect x="152" y="78" width="14" height="36" rx="5"/>
+  </g>
+</svg>

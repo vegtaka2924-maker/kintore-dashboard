@@ -28,6 +28,13 @@ function build() {
     copy(nextSessionSrc, path.join(OUT, 'next-session.html'));
   }
 
+  // 2c) カードを「ホーム画面アプリ（PWA）」として開くための設定とアイコン。
+  //     存在する場合のみコピー（アドレスバー無しの全画面でカードを開けるようにする）。
+  for (const f of ['card.webmanifest', 'icon-card.svg']) {
+    const src = path.join(ROOT, f);
+    if (fs.existsSync(src)) copy(src, path.join(OUT, f));
+  }
+
   // 3) manifest（start_url/scopeを公開ルート用に "./" へ）
   const man = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.webmanifest'), 'utf8'));
   man.start_url = './'; man.scope = './';
