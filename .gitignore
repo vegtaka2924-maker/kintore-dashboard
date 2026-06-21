@@ -12,6 +12,7 @@
 !/sw.js
 !/server.cjs
 !/gen-sw.cjs
+!/gen-icons.cjs
 !/build-deploy.cjs
 !/start-gym.cmd
 !/package.json
