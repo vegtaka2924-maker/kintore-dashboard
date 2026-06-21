@@ -30,7 +30,7 @@ function build() {
 
   // 2c) カードを「ホーム画面アプリ（PWA）」として開くための設定とアイコン。
   //     存在する場合のみコピー（アドレスバー無しの全画面でカードを開けるようにする）。
-  for (const f of ['card.webmanifest', 'icon-card.svg']) {
+  for (const f of ['card.webmanifest', 'icon-card.svg', 'icon-card-192.png', 'icon-card-512.png']) {
     const src = path.join(ROOT, f);
     if (fs.existsSync(src)) copy(src, path.join(OUT, f));
   }
