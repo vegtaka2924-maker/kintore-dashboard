@@ -22,7 +22,7 @@ window.KINTORE_DATA = {
   meta: {
     programName: "筋肥大プログラム",
     splitName: "4分割（Upper/Lower × A/B）",
-    sessionsDone: 3,     // ★これまでに完了した回数（トレ報告のたびに +1）
+    sessionsDone: 4,     // ★これまでに完了した回数（トレ報告のたびに +1）
     sessionsTotal: 36,   // 週3回 × 12週間 ＝ 全36回
     cycleNote: "1周目",  // 今が何周目か
     phaseNote: "Phase 1：まずはフォーム習得と土台づくり。各種目の基準重量に体を慣らし、正しい動きを固める時期。",
@@ -38,7 +38,7 @@ window.KINTORE_DATA = {
 
   /* ローテーションの順番と、次にやるセッション。トレ後は currentKey を次へ進める。 */
   rotation: ["upperA", "lowerA", "upperB", "lowerB"],
-  currentKey: "lowerB",
+  currentKey: "upperA",
 
   sessions: {
 
@@ -48,7 +48,7 @@ window.KINTORE_DATA = {
       name: "Upper-A",
       titleJp: "胸・背中メイン",
       lede: "ベンチと懸垂で押す力・引く力を伸ばす上半身の主役日。",
-      coachIntro: "Upper-Aは“押す・引く”の土台づくり。ベンチは肩甲骨を寄せて丁寧に、懸垂は最後まで出し切ろう。今は重さより<b>フォーム最優先</b>でいこう！",
+      coachIntro: "前回のRDL90kg×3セット、お見事！今日は上半身デーだから、<b>疲れた腰（脊柱起立筋）をしっかり休ませる</b>絶好のタイミング。ベンチは肩甲骨を寄せて丁寧に、懸垂は最後まで出し切ろう。今は重さよりフォーム最優先でいこう！",
       minutes: 80,
       payoff: [
         { target: "胸", text: "ベンチで胸板に厚みが出て、シャツが前から押し返される。押す力そのものが強くなる。" },
@@ -258,12 +258,12 @@ window.KINTORE_DATA = {
           sets: [
             { label: "W1", warm: true, weight: "60kg", reps: "8回" },
             { label: "W2", warm: true, weight: "80kg", reps: "3回" },
-            { label: "M1", weight: "80〜90kg", reps: "6〜10回", rest: "rest 3 min" },
-            { label: "M2", weight: "80〜90kg", reps: "6〜10回", rest: "rest 3 min" },
-            { label: "M3", weight: "80〜90kg", reps: "AMRAP ★", accent: true, rest: "rest 3 min" }
+            { label: "M1", weight: "90kg", reps: "8〜10回", rest: "rest 3 min" },
+            { label: "M2", weight: "90kg", reps: "8〜10回", rest: "rest 3 min" },
+            { label: "M3", weight: "90kg", reps: "AMRAP ★", accent: true, rest: "rest 3 min" }
           ],
-          why: "RDLはハム・お尻という大きな筋肉を使うので高重量を扱える種目。だからこの日の「主役（伸ばす種目）」に置き、Lower-Aより重めにしている。6〜10回は筋肥大に最も効率的とされる回数域で、重い負荷をある程度の回数こなすと筋肉が一番育つ。M3だけAMRAP（限界まで）にして、毎回の伸びを測る。",
-          tip: "膝でなく股関節から折る。背中はまっすぐ、バーは脛に沿わせて下ろす。後ろももが伸びるのを感じる位置まで。Lower-AのRDLより重め、Phase2から重量を上げていく。"
+          why: "RDLはハム・お尻という大きな筋肉を使うので高重量を扱える種目。だからこの日の「主役（伸ばす種目）」に置き、Lower-Aより重めにしている。前回90kg×10を3セット完遂できたので、ここを新しい基準重量に固定。重さはまだ上げられそうでも、今は<b>腰（脊柱起立筋）を慣らす時期</b>——まずは90kgで腹圧と背中のまっすぐを安定させ、腰の疲労が軽く感じられるようになってから+2.5〜5kgへ。M3だけAMRAP（限界まで）にして伸びを測る。",
+          tip: "膝でなく股関節から折る。背中はまっすぐ、バーは脛に沿わせて下ろす。お腹に空気を入れて固める“腹圧”を毎レップ意識すると、腰（脊柱起立筋）の負担が分散される。後ろももが伸びるのを感じる位置まで。腰に鋭い痛みが出たら即中止、疲労感だけなら慣れていく範囲。"
         },
         {
           no: "02", name: "バーベルスクワット<br>or ハックスクワット（軽め）", tag: "脚・維持",
@@ -299,13 +299,19 @@ window.KINTORE_DATA = {
      ★数値は要確認・トレ報告ごとに current を更新する。 */
   progress: [
     { lift: "スクワット",       start: 75, current: 75, unit: "kg" },
-    { lift: "RDL",             start: 70, current: 70, unit: "kg" },
+    { lift: "RDL",             start: 70, current: 90, unit: "kg" },
     { lift: "ベンチプレス",     start: 70, current: 70, unit: "kg" },
     { lift: "ショルダープレス", start: 54, current: 54, unit: "kg" }
   ],
 
   /* これまでのトレーニング記録（新しい順）。トレ報告のたびに先頭へ1行追加する。 */
   log: [
+    {
+      date: "2026-06-24", sessionKey: "lowerB",
+      highlights: "RDL 90×10・10・10（大躍進）／スクワット70×10維持／腰の疲労でレッグプレス・カーフ中止",
+      detail: "RDL（ルーマニアンDL）W60×8・80×3／M 90kg×10・10・10（AMRAP含む・腰＝脊柱起立筋に強い疲労）／バーベルスクワット 70kg×10・10・10（重量は余裕も息が続かず・疲労大）／レッグプレス・カーフレイズ＝腰の疲労・限界のため未実施",
+      coach: "<b>目標</b>はRDLでハム・お尻を重めに伸ばすこと。実際は<b>90kg×10を3セット完遂</b>——プログラムの上限（80〜90kg／6〜10回）を全部10回で出し切る大躍進！前回70kgで腰を痛めて中断したのに、見事な立て直しだ。スクワットも70×10×3を“維持”でクリア◎。一方で<b>腰（脊柱起立筋）の強い疲労</b>でレッグプレス・カーフは中止——これは正しい判断。重量はまだ上げられそうでも、今は腰を慣らす時期。次回も90kgで“腹圧と背中のまっすぐ”を固めて、腰に余裕が出てから増量しよう！"
+    },
     {
       date: "2026-06-22", sessionKey: "upperB",
       highlights: "ショルダー54×12・10・7／ペック54×12・12・11",
