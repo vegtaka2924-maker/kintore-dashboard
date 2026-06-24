@@ -171,8 +171,8 @@
 
   /* トレーナーのコメント（アバター付き吹き出し） */
   .coach { display: flex; gap: 12px; align-items: flex-start; margin: 18px 0 8px; padding: 14px 15px; background: #EFE9DD; border-radius: 12px; }
-  .coach-av { flex-shrink: 0; width: 42px; height: 42px; }
-  .coach-av svg { display: block; }
+  .coach-av { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; overflow: hidden; background: var(--oxblood); }
+  .coach-av img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .coach-bubble { flex: 1; }
   .coach-name { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--oxblood); margin-bottom: 4px; }
   .coach-bubble p { font-size: 13px; line-height: 1.8; color: var(--ink); }
@@ -222,15 +222,11 @@
 <script>
   var D = window.KINTORE_DATA;
 
-  /* トレーナーのアバター（紙色の人物＋ヘッドバンド＝コーチ風） */
-  var COACH_SVG = '<svg viewBox="0 0 42 42" width="42" height="42" aria-hidden="true">'
-    + '<circle cx="21" cy="21" r="21" fill="#7C2A22"/>'
-    + '<circle cx="21" cy="16.5" r="7" fill="#F4EFE6"/>'
-    + '<path d="M8 36 Q8 25.5 21 25.5 Q34 25.5 34 36 Z" fill="#F4EFE6"/>'
-    + '<rect x="13" y="11.6" width="16" height="3.2" rx="1.6" fill="#7C2A22"/></svg>';
+  /* 専属トレーナー感が出るように、kaikaiくんの顔だけを丸く表示する。 */
+  var COACH_AVATAR = '<img src="coach-kaikai.png" width="42" height="42" alt="" aria-hidden="true">';
   function coachBlock(text) {
-    return '<div class="coach"><div class="coach-av">' + COACH_SVG + '</div>'
-      + '<div class="coach-bubble"><div class="coach-name">専属トレーナー</div><p>' + text + '</p></div></div>';
+    return '<div class="coach"><div class="coach-av">' + COACH_AVATAR + '</div>'
+      + '<div class="coach-bubble"><div class="coach-name">kaikaiくん</div><p>' + text + '</p></div></div>';
   }
 
   function setRow(s) {
