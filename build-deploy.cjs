@@ -28,9 +28,10 @@ function build() {
     copy(nextSessionSrc, path.join(OUT, 'next-session.html'));
   }
 
-  // 2c) カードを「ホーム画面アプリ（PWA）」として開くための設定とアイコン。
+  // 2c) カードを「ホーム画面アプリ（PWA）」として開くための設定とアイコン、
+  //     および専属トレーナー kaikaiくんのアバター画像（コーチ吹き出しで使用）。
   //     存在する場合のみコピー（アドレスバー無しの全画面でカードを開けるようにする）。
-  for (const f of ['card.webmanifest', 'icon-card.svg', 'icon-card-192.png', 'icon-card-512.png']) {
+  for (const f of ['card.webmanifest', 'icon-card.svg', 'icon-card-192.png', 'icon-card-512.png', 'coach-kaikai.png']) {
     const src = path.join(ROOT, f);
     if (fs.existsSync(src)) copy(src, path.join(OUT, f));
   }

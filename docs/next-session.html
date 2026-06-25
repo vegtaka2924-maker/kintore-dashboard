@@ -178,6 +178,40 @@
   .coach-bubble p { font-size: 13px; line-height: 1.8; color: var(--ink); }
   .coach-bubble p b { color: var(--oxblood); font-weight: 700; }
 
+  /* 継続カレンダー（ログタブ上部） */
+  .cal { margin: 4px 0 30px; }
+  .cal-prog { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
+  .cal-prog-lbl { font-family: var(--sans-jp); font-size: 11px; color: var(--ink-soft); }
+  .cal-prog-num { font-size: 11px; color: var(--ink-soft); }
+  .cal-prog-num b { font-size: 18px; font-weight: 700; color: var(--oxblood); }
+  .cal-strip { display: flex; gap: 6px; margin-top: 8px; }
+  .cal-strip .wk { display: flex; gap: 2px; flex: 1; }
+  .cal-seg { height: 15px; flex: 1; border-radius: 3px; background: #E2D9C7; }
+  .cal-seg.done { background: var(--oxblood); }
+  .cal-seg.now { background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--oxblood); }
+  .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+  .cal-nav button { border: 0; background: none; cursor: pointer; color: var(--oxblood); font-size: 22px; line-height: 1; padding: 2px 12px; }
+  .cal-nav .mlabel { font-family: var(--serif-jp); font-weight: 600; font-size: 19px; }
+  .cal-nav .mlatin { font-family: var(--serif-latin); font-style: italic; font-size: 12px; color: var(--ink-soft); margin-left: 6px; }
+  .cal-week { align-items: center; gap: 8px; margin-top: 12px; font-family: var(--sans-jp); font-size: 11px; color: var(--ink-soft); }
+  .cal-week .dots { display: inline-flex; gap: 4px; }
+  .cal-week .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--oxblood); box-sizing: border-box; }
+  .cal-week .dot.on { background: var(--oxblood); }
+  .cal-week .left { color: var(--oxblood); font-weight: 700; }
+  .cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 12px; font-family: var(--sans-jp); font-size: 10px; text-align: center; color: var(--ink-faint); }
+  .cal-dow .sun { color: #B98A82; }
+  .cal-dow .sat { color: #8AA0A6; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 5px; }
+  .cal-cell { position: relative; aspect-ratio: 1; min-height: 42px; display: flex; align-items: center; justify-content: center; font-family: var(--serif-latin); font-size: 14px; border-radius: 7px; color: var(--ink-faint); }
+  .cal-cell.went { background: #EAD7CF; color: var(--oxblood-deep); }
+  .cal-cell.today { border: 2px solid var(--oxblood); }
+  .cal-cell .part { position: absolute; top: 3px; right: 5px; font-family: var(--serif-jp); font-size: 9px; color: #9C5A50; }
+  .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-family: var(--sans-jp); font-size: 10.5px; color: var(--ink-soft); }
+  .cal-legend .sw { width: 13px; height: 13px; border-radius: 4px; display: inline-block; vertical-align: -2px; margin-right: 5px; box-sizing: border-box; }
+  .cal-stats { display: flex; gap: 22px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-family: var(--sans-jp); }
+  .cal-stats .num { font-size: 22px; font-weight: 700; color: var(--oxblood); line-height: 1.1; }
+  .cal-stats .lbl2 { font-size: 10px; color: var(--ink-soft); }
+
   /* 下タブバー（固定） */
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: var(--paper); border-top: 1px solid var(--rule-strong); padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
   .tabbar button { flex: 1; border: 0; background: none; color: var(--ink-faint); cursor: pointer; padding: 9px 0 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: var(--sans-jp); }
@@ -341,9 +375,107 @@
     document.getElementById('prog-sheet').innerHTML = h;
   }
 
+  /* 継続カレンダー（ログタブ上部） */
+  var CAL = { idx: 0, months: [] };
+  var MON_LATIN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function calBuildMonths() {
+    var map = {};
+    (D.attendance || []).forEach(function (a) {
+      var p = a.date.split('-'), key = p[0] + '-' + p[1];
+      (map[key] = map[key] || {})[parseInt(p[2], 10)] = a.part;
+    });
+    var keys = Object.keys(map).sort(), now = new Date();
+    var sy, sm, ey = now.getFullYear(), em = now.getMonth() + 1;
+    if (keys.length) { var f = keys[0].split('-'); sy = +f[0]; sm = +f[1]; } else { sy = ey; sm = em; }
+    if (keys.length) { var l = keys[keys.length - 1].split('-'); if (+l[0] > ey || (+l[0] === ey && +l[1] > em)) { ey = +l[0]; em = +l[1]; } }
+    var list = [], y = sy, m = sm;
+    while (y < ey || (y === ey && m <= em)) {
+      list.push({ y: y, m: m, t: map[y + '-' + (m < 10 ? '0' + m : m)] || {} });
+      m++; if (m > 12) { m = 1; y++; }
+    }
+    return list;
+  }
+
+  function calShell() {
+    return '<section class="cal">'
+      + '<span class="kicker">Continuity ・ つづけた記録</span>'
+      + '<div class="cal-prog"><span class="cal-prog-lbl">今のプログラム（週3 × 12週）</span>'
+      + '<span class="cal-prog-num"><b>' + D.meta.sessionsDone + '</b> / ' + D.meta.sessionsTotal + '回</span></div>'
+      + '<div class="cal-strip" id="cal-strip"></div>'
+      + '<div class="cal-nav"><button onclick="calStep(-1)" aria-label="前の月" id="cal-prev">‹</button>'
+      + '<div><span class="mlabel" id="cal-mlabel"></span><span class="mlatin" id="cal-mlatin"></span></div>'
+      + '<button onclick="calStep(1)" aria-label="次の月" id="cal-next">›</button></div>'
+      + '<div class="cal-week" id="cal-week" style="display:none"></div>'
+      + '<div class="cal-dow"><span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span></div>'
+      + '<div class="cal-grid" id="cal-grid"></div>'
+      + '<div class="cal-legend">'
+      + '<span><span class="sw" style="background:#EAD7CF"></span>行った日</span>'
+      + '<span><span class="sw" style="border:2px solid var(--oxblood)"></span>今日</span>'
+      + '<span style="color:var(--ink-faint)">上＝上半身 / 下＝下半身</span></div>'
+      + '<div class="cal-stats" id="cal-stats"></div></section>';
+  }
+
+  function calRenderStrip() {
+    var done = D.meta.sessionsDone, total = D.meta.sessionsTotal, per = 3, wks = Math.ceil(total / per), nowSeg = done + 1, s = '';
+    for (var w = 0; w < wks; w++) {
+      s += '<div class="wk">';
+      for (var k = 0; k < per; k++) {
+        var n = w * per + k + 1;
+        if (n > total) { s += '<div class="cal-seg" style="visibility:hidden"></div>'; continue; }
+        s += '<div class="cal-seg' + (n <= done ? ' done' : (n === nowSeg ? ' now' : '')) + '"></div>';
+      }
+      s += '</div>';
+    }
+    document.getElementById('cal-strip').innerHTML = s;
+  }
+
+  function calRender() {
+    var o = CAL.months[CAL.idx], now = new Date();
+    var isCur = (o.y === now.getFullYear() && o.m === now.getMonth() + 1), todayD = now.getDate();
+    var lead = new Date(o.y, o.m - 1, 1).getDay(), days = new Date(o.y, o.m, 0).getDate();
+
+    document.getElementById('cal-mlabel').textContent = o.y + '年 ' + o.m + '月';
+    document.getElementById('cal-mlatin').textContent = MON_LATIN[o.m - 1];
+    document.getElementById('cal-prev').style.visibility = CAL.idx > 0 ? 'visible' : 'hidden';
+    document.getElementById('cal-next').style.visibility = CAL.idx < CAL.months.length - 1 ? 'visible' : 'hidden';
+
+    var g = '';
+    for (var i = 0; i < lead; i++) g += '<div></div>';
+    for (var d = 1; d <= days; d++) {
+      var part = o.t[d], isToday = isCur && d === todayD;
+      g += '<div class="cal-cell' + (part ? ' went' : '') + (isToday ? ' today' : '') + '">'
+        + (part ? '<span class="part">' + (part === 'U' ? '上' : '下') + '</span>' : '') + d + '</div>';
+    }
+    document.getElementById('cal-grid').innerHTML = g;
+
+    var cnt = 0; for (var key in o.t) if (o.t.hasOwnProperty(key)) cnt++;
+    var weeks = (isCur ? todayD : days) / 7, avg = (cnt / weeks).toFixed(1);
+    document.getElementById('cal-stats').innerHTML =
+      '<div><div class="num">' + cnt + '</div><div class="lbl2">通った 回</div></div>'
+      + '<div><div class="num">' + avg + '</div><div class="lbl2">週平均 回</div></div>';
+
+    var wk = document.getElementById('cal-week');
+    if (isCur) {
+      var ws = todayD - now.getDay(), wc = 0;
+      for (var kk in o.t) { var dd = +kk; if (dd >= ws && dd <= ws + 6) wc++; }
+      var dots = ''; for (var j = 0; j < 3; j++) dots += '<span class="dot' + (j < wc ? ' on' : '') + '"></span>';
+      var left = Math.max(0, 3 - wc);
+      wk.innerHTML = '<span>今週</span><span class="dots">' + dots + '</span><span class="left">' + (left > 0 ? 'あと' + left + '回' : '週3達成！') + '</span>';
+      wk.style.display = 'flex';
+    } else { wk.style.display = 'none'; }
+  }
+
+  function calStep(dir) {
+    var n = CAL.idx + dir;
+    if (n < 0 || n >= CAL.months.length) return;
+    CAL.idx = n; calRender();
+  }
+
   /* ログタブ */
   function buildLog() {
-    var h = '<header class="masthead"><div class="masthead-top">'
+    var h = calShell()
+      + '<header class="masthead"><div class="masthead-top">'
       + '<span class="kicker">Log</span><span class="date">' + D.log.length + ' sessions</span></div>'
       + '<h1 class="title sm">これまでの記録</h1></header><div class="logs">';
     D.log.forEach(function (l, idx) {
@@ -360,6 +492,10 @@
     });
     h += '</div>';
     document.getElementById('log-sheet').innerHTML = h;
+    CAL.months = calBuildMonths();
+    CAL.idx = CAL.months.length - 1;
+    calRenderStrip();
+    calRender();
   }
 
   /* タブ切替 */
