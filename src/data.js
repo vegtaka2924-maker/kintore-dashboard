@@ -58,7 +58,7 @@ window.KINTORE_DATA = {
       rule: "全セットで上限回数を達成したら、次回 +2.5〜5kg。",
       exercises: [
         {
-          no: "01", name: "バーベルベンチプレス", tag: "胸・メイン",
+          no: "01", name: "バーベルベンチプレス", tag: "胸・メイン", last: "70kg × 8・8・9",
           sets: [
             { label: "W1", warm: true, weight: "20kg", reps: "12回" },
             { label: "W2", warm: true, weight: "50kg", reps: "5回" },
@@ -70,7 +70,7 @@ window.KINTORE_DATA = {
           tip: "肩甲骨を寄せて下げてから握る。バーは乳首のラインへ。最初の2週は70kg固定でフォーム優先。"
         },
         {
-          no: "02", name: "懸垂（自重）", tag: "背中・広がり",
+          no: "02", name: "懸垂（自重）", tag: "背中・広がり", last: "自重 8・5・3 回",
           sets: [
             { label: "W1", warm: true, weight: "アシスト −30kg", reps: "8回" },
             { label: "M1", weight: "自重", reps: "AMRAP ★", accent: true, rest: "rest 2–3 min" },
@@ -81,7 +81,7 @@ window.KINTORE_DATA = {
           tip: "肩を下げてから引き、胸を張って鎖骨をバーに近づける。反動を使わず背中で引く。"
         },
         {
-          no: "03", name: "インクラインマシンプレス", tag: "胸上部・補助",
+          no: "03", name: "インクラインマシンプレス", tag: "胸上部・補助", last: "33.6kg × 6・8・10",
           sets: [
             { label: "M1", weight: "33.6kg", reps: "8〜12回", rest: "rest 2 min" },
             { label: "M2", weight: "33.6kg", reps: "8〜12回", rest: "rest 2 min" },
@@ -91,7 +91,7 @@ window.KINTORE_DATA = {
           tip: "胸の上部に効いているか意識。肘を開きすぎず、押し切ったら一瞬止める。"
         },
         {
-          no: "04", name: "ラットプルダウン<br>or シーテッドロー", tag: "背中・厚み",
+          no: "04", name: "ラットプルダウン<br>or シーテッドロー", tag: "背中・厚み", last: "ロー代替 30.4kg × 12・12",
           sets: [
             { label: "M1", weight: "77〜82kg", reps: "8〜10回", rest: "rest 2 min" },
             { label: "M2", weight: "77〜82kg", reps: "8〜10回", rest: "rest 2 min" },
@@ -119,7 +119,7 @@ window.KINTORE_DATA = {
       rule: "全セットで上限回数を達成したら、次回 +2.5〜5kg。",
       exercises: [
         {
-          no: "01", name: "バーベルスクワット", tag: "脚・最優先",
+          no: "01", name: "バーベルスクワット", tag: "脚・最優先", last: "75kg × 8・8・10",
           sets: [
             { label: "W1", warm: true, weight: "20kg", reps: "12回" },
             { label: "W2", warm: true, weight: "60kg", reps: "5回" },
@@ -131,7 +131,7 @@ window.KINTORE_DATA = {
           tip: "全種目中で絶対に手を抜かない一番手。胸を張り、お尻を後ろに引いて深くしゃがむ。"
         },
         {
-          no: "02", name: "RDL（ルーマニアンデッドリフト）", tag: "ハム・お尻",
+          no: "02", name: "RDL（ルーマニアンデッドリフト）", tag: "ハム・お尻", last: "70kg × 8・6（腰違和感で中断）",
           sets: [
             { label: "W1", warm: true, weight: "60kg", reps: "8回（フォーム確認）" },
             { label: "M1", weight: "70kg", reps: "8〜10回", rest: "rest 2–3 min" },
@@ -178,7 +178,7 @@ window.KINTORE_DATA = {
       rule: "全セットで上限回数を達成したら、次回 +2.5〜5kg。",
       exercises: [
         {
-          no: "01", name: "マシンショルダープレス", tag: "肩・メイン",
+          no: "01", name: "マシンショルダープレス", tag: "肩・メイン", last: "54kg × 12・10・7",
           sets: [
             { label: "W1", warm: true, weight: "20〜27kg", reps: "12回" },
             { label: "W2", warm: true, weight: "41kg", reps: "5回" },
@@ -254,7 +254,7 @@ window.KINTORE_DATA = {
       rule: "全セットで上限回数を達成したら、次回 +2.5〜5kg。",
       exercises: [
         {
-          no: "01", name: "RDL（ルーマニアンデッドリフト）", tag: "ハム・お尻・メイン",
+          no: "01", name: "RDL（ルーマニアンデッドリフト）", tag: "ハム・お尻・メイン", last: "90kg × 10・10・10",
           sets: [
             { label: "W1", warm: true, weight: "60kg", reps: "8回" },
             { label: "W2", warm: true, weight: "80kg", reps: "3回" },
@@ -266,7 +266,7 @@ window.KINTORE_DATA = {
           tip: "膝でなく股関節から折る。背中はまっすぐ、バーは脛に沿わせて下ろす。お腹に空気を入れて固める“腹圧”を毎レップ意識すると、腰（脊柱起立筋）の負担が分散される。後ろももが伸びるのを感じる位置まで。腰に鋭い痛みが出たら即中止、疲労感だけなら慣れていく範囲。"
         },
         {
-          no: "02", name: "バーベルスクワット<br>or ハックスクワット（軽め）", tag: "脚・維持",
+          no: "02", name: "バーベルスクワット<br>or ハックスクワット（軽め）", tag: "脚・維持", last: "70kg × 10・10・10",
           sets: [
             { label: "M1", weight: "70kg", reps: "10〜12回", rest: "rest 2–3 min" },
             { label: "M2", weight: "70kg", reps: "10〜12回", rest: "rest 2–3 min" },
@@ -353,5 +353,23 @@ window.KINTORE_DATA = {
     { date: "2026-06-07", part: "L" }, { date: "2026-06-09", part: "U" }, { date: "2026-06-13", part: "U" },
     { date: "2026-06-15", part: "L" }, { date: "2026-06-18", part: "U" }, { date: "2026-06-19", part: "L" },
     { date: "2026-06-22", part: "U" }, { date: "2026-06-24", part: "L" }
+  ],
+
+  /* 自己ベスト（PRボード）。主要種目の最高記録。更新したら値と date を直し、新記録は isNew:true に。 */
+  records: [
+    { lift: "RDL",             weight: "90", unit: "kg", reps: "× 10",        date: "2026-06-24", isNew: true },
+    { lift: "スクワット",       weight: "85", unit: "kg", reps: "× 2",         date: "2026-06-15" },
+    { lift: "ベンチプレス",     weight: "70", unit: "kg", reps: "× 9（AMRAP）", date: "2026-06-18" },
+    { lift: "ショルダープレス", weight: "54", unit: "kg", reps: "× 12",        date: "2026-06-22" },
+    { lift: "懸垂（自重）",     weight: "8",  unit: "回", reps: "連続",         date: "2026-06-18" }
+  ],
+
+  /* 体組成（InBody）の推移。骨格筋量(kg)↑・体脂肪率(%)↓で逆三角の進み具合を見る。
+     ★本人が「公開OK（血液検査等はNG）」と判断した基本指標のみ。測定のたびに1行追加。 */
+  inbody: [
+    { date: "2025-10-08", weight: 78.6, muscle: 36.5, fat: 19.0 },
+    { date: "2026-01-27", weight: 76.0, muscle: 36.1, fat: 16.7 },
+    { date: "2026-02-27", weight: 78.5, muscle: 37.4, fat: 17.3 },
+    { date: "2026-05-05", weight: 79.8, muscle: 38.8, fat: 15.3 }
   ]
 };
