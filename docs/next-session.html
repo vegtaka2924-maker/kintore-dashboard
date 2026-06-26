@@ -211,6 +211,17 @@
   .cal-stats { display: flex; gap: 22px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-family: var(--sans-jp); }
   .cal-stats .num { font-size: 22px; font-weight: 700; color: var(--oxblood); line-height: 1.1; }
   .cal-stats .lbl2 { font-size: 10px; color: var(--ink-soft); }
+  .cal-cell.went { cursor: pointer; }
+  .cal-cell.sel { box-shadow: inset 0 0 0 2px var(--oxblood); }
+  .cal-cell.today.sel { box-shadow: inset 0 0 0 2px var(--oxblood); }
+
+  /* その日の記録（カレンダー下の詳細） */
+  .cal-detail { margin-top: 6px; }
+  .cal-det-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 12px; }
+  .cal-det-date { font-family: var(--serif-latin); font-weight: 700; font-size: 26px; color: var(--oxblood); line-height: 1; }
+  .cal-det-name { font-family: var(--serif-jp); font-weight: 600; font-size: 16px; }
+  .cal-det-hl { font-size: 13px; line-height: 1.7; color: var(--ink); margin-bottom: 4px; }
+  .cal-det-none { font-family: var(--serif-jp); font-size: 13px; color: var(--ink-soft); padding: 2px 0; }
 
   /* 下タブバー（固定） */
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: var(--paper); border-top: 1px solid var(--rule-strong); padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
@@ -242,9 +253,9 @@
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="7" x2="18" y2="7"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="17" x2="13" y2="17"/></svg>
     <span class="lbl">プログラム</span>
   </button>
-  <button data-tab="next" onclick="showTab('next')" aria-label="次回">
+  <button data-tab="next" onclick="showTab('next')" aria-label="メニュー">
     <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="6" r="2.4"/><path d="M6 10 Q12 8.4 18 10 L15.5 19 Q12 19.8 8.5 19 Z"/></svg>
-    <span class="lbl">次回</span>
+    <span class="lbl">メニュー</span>
   </button>
   <button data-tab="log" onclick="showTab('log')" aria-label="ログ">
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 l3 2"/></svg>
@@ -295,17 +306,12 @@
 
   function masthead(s) {
     return '<header class="masthead"><div class="masthead-top">'
-      + '<span class="kicker">Next Session</span><span class="date">' + s.name.replace('-', ' / ') + '</span></div>'
+      + '<span class="kicker">Menu</span><span class="date">' + s.name.replace('-', ' / ') + '</span></div>'
       + '<h1 class="title">' + s.name + '</h1><div class="title-jp">' + s.titleJp + '</div>'
       + '<p class="lede">' + s.lede + '　／　目安 <span class="min">' + s.minutes + '分</span></p></header>';
   }
   function sessionInner(s) {
     var h = '';
-    if (s.payoff && s.payoff.length) {
-      h += '<section class="payoff"><span class="kicker k">鍛えると、こうなる</span>';
-      s.payoff.forEach(function (p) { h += '<div class="payoff-item"><span class="po-target">' + p.target + '</span><span class="po-text">' + p.text + '</span></div>'; });
-      h += '</section>';
-    }
     if (s.rule) h += '<div class="rulenote"><span class="kicker k">2-up rule</span><p>' + s.rule + '</p></div>';
     s.exercises.forEach(function (ex) { h += renderExercise(ex); });
     return h;
@@ -440,12 +446,13 @@
     document.getElementById('cal-prev').style.visibility = CAL.idx > 0 ? 'visible' : 'hidden';
     document.getElementById('cal-next').style.visibility = CAL.idx < CAL.months.length - 1 ? 'visible' : 'hidden';
 
-    var g = '';
+    var g = '', pad = function (x) { return x < 10 ? '0' + x : '' + x; };
     for (var i = 0; i < lead; i++) g += '<div></div>';
     for (var d = 1; d <= days; d++) {
-      var part = o.t[d], isToday = isCur && d === todayD;
-      g += '<div class="cal-cell' + (part ? ' went' : '') + (isToday ? ' today' : '') + '">'
-        + (part ? '<span class="part">' + (part === 'U' ? '上' : '下') + '</span>' : '') + d + '</div>';
+      var part = o.t[d], isToday = isCur && d === todayD, ds = o.y + '-' + pad(o.m) + '-' + pad(d);
+      var cls = 'cal-cell' + (part ? ' went' : '') + (isToday ? ' today' : '') + (part && CAL.sel === ds ? ' sel' : '');
+      var mk = part ? '<span class="part">' + (part === 'U' ? '上' : '下') + '</span>' : '';
+      g += '<div class="' + cls + '"' + (part ? ' onclick="calPick(\'' + ds + '\')"' : '') + '>' + mk + d + '</div>';
     }
     document.getElementById('cal-grid').innerHTML = g;
 
@@ -472,30 +479,52 @@
     CAL.idx = n; calRender();
   }
 
-  /* ログタブ */
+  /* 日付 → ログ／出席のひき当て表 */
+  var LOGMAP = {}, ATTMAP = {};
+  function calBuildMaps() {
+    LOGMAP = {}; ATTMAP = {};
+    (D.log || []).forEach(function (l) { LOGMAP[l.date] = l; });
+    (D.attendance || []).forEach(function (a) { ATTMAP[a.date] = a.part; });
+  }
+
+  /* カレンダーで選んだ日の詳細をカレンダー下に表示する */
+  function calDetail(date) {
+    var l = LOGMAP[date], part = ATTMAP[date];
+    var name = (l && D.sessions[l.sessionKey]) ? D.sessions[l.sessionKey].name
+      : (part === 'U' ? '上半身' : part === 'L' ? '下半身' : '—');
+    var h = '<div class="cal-det-head"><span class="cal-det-date">' + fmtDate(date) + '</span>'
+      + '<span class="cal-det-name">' + name + '</span></div>';
+    if (l) {
+      if (l.highlights) h += '<p class="cal-det-hl">' + l.highlights + '</p>';
+      if (l.detail) h += '<div class="log-detail">' + l.detail + '</div>';
+      if (l.coach) h += coachBlock(l.coach);
+    } else {
+      h += '<p class="cal-det-none">この日はジムに通った記録のみ（詳細メモはありません）。</p>';
+    }
+    document.getElementById('cal-detail').innerHTML = h;
+  }
+
+  /* カレンダーの日付タップ：選択を移して詳細を出す */
+  function calPick(date) {
+    CAL.sel = date;
+    calRender();
+    calDetail(date);
+  }
+
+  /* ログタブ＝カレンダー＋（タップで）その日の記録 */
   function buildLog() {
     var h = calShell()
-      + '<header class="masthead"><div class="masthead-top">'
-      + '<span class="kicker">Log</span><span class="date">' + D.log.length + ' sessions</span></div>'
-      + '<h1 class="title sm">これまでの記録</h1></header><div class="logs">';
-    D.log.forEach(function (l, idx) {
-      var nm = D.sessions[l.sessionKey] ? D.sessions[l.sessionKey].name : l.sessionKey;
-      h += '<div class="log-item">'
-        + '<button class="log-h" id="lh-' + idx + '" onclick="toggleLog(' + idx + ')">'
-        + '<span class="ld">' + fmtDate(l.date) + ' ' + nm + '</span>'
-        + '<span class="lm">' + (l.minutes ? l.minutes + '分' : '') + '<span class="chev">▾</span></span></button>'
-        + '<div class="log-sum">' + (l.highlights || '') + '</div>'
-        + '<div class="log-body" id="lb-' + idx + '"><div class="inner">'
-        + (l.detail ? '<div class="log-detail">' + l.detail + '</div>' : '')
-        + (l.coach ? coachBlock(l.coach) : '')
-        + '</div></div></div>';
-    });
-    h += '</div>';
+      + '<span class="kicker" style="display:block;margin-top:26px">Session detail ・ その日の記録</span>'
+      + '<div class="cal-detail" id="cal-detail"></div>';
     document.getElementById('log-sheet').innerHTML = h;
+    calBuildMaps();
     CAL.months = calBuildMonths();
     CAL.idx = CAL.months.length - 1;
+    var dates = Object.keys(ATTMAP).sort();
+    CAL.sel = dates.length ? dates[dates.length - 1] : null;
     calRenderStrip();
     calRender();
+    if (CAL.sel) calDetail(CAL.sel);
   }
 
   /* タブ切替 */
@@ -515,14 +544,6 @@
     document.querySelectorAll('.rot-body.open').forEach(function (x) { x.classList.remove('open'); });
     document.querySelectorAll('.rot-h.open').forEach(function (x) { x.classList.remove('open'); });
     if (!open) { b.classList.add('open'); document.getElementById('rh-' + k).classList.add('open'); }
-  }
-
-  /* ログ：その場で詳細＋評価を開閉 */
-  function toggleLog(idx) {
-    var b = document.getElementById('lb-' + idx), h = document.getElementById('lh-' + idx);
-    var open = b.classList.contains('open');
-    b.classList.toggle('open', !open);
-    h.classList.toggle('open', !open);
   }
 
   /* 起動 */
