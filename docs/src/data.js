@@ -22,7 +22,7 @@ window.KINTORE_DATA = {
   meta: {
     programName: "筋肥大プログラム",
     splitName: "4分割（Upper/Lower × A/B）",
-    sessionsDone: 4,     // ★これまでに完了した回数（トレ報告のたびに +1）
+    sessionsDone: 5,     // ★これまでに完了した回数（トレ報告のたびに +1）
     sessionsTotal: 36,   // 週3回 × 12週間 ＝ 全36回
     cycleNote: "1周目",  // 今が何周目か
     phaseNote: "Phase 1：まずはフォーム習得と土台づくり。各種目の基準重量に体を慣らし、正しい動きを固める時期。",
@@ -38,7 +38,7 @@ window.KINTORE_DATA = {
 
   /* ローテーションの順番と、次にやるセッション。トレ後は currentKey を次へ進める。 */
   rotation: ["upperA", "lowerA", "upperB", "lowerB"],
-  currentKey: "upperA",
+  currentKey: "lowerA",
 
   sessions: {
 
@@ -48,7 +48,7 @@ window.KINTORE_DATA = {
       name: "Upper-A",
       titleJp: "胸・背中メイン",
       lede: "ベンチと懸垂で押す力・引く力を伸ばす上半身の主役日。",
-      coachIntro: "前回のRDL90kg×3セット、お見事！今日は上半身デーだから、<b>疲れた腰（脊柱起立筋）をしっかり休ませる</b>絶好のタイミング。ベンチは肩甲骨を寄せて丁寧に、懸垂は最後まで出し切ろう。今は重さよりフォーム最優先でいこう！",
+      coachIntro: "前回ベンチで<b>75kgに到達（自己新）</b>、ナイス更新！今日は<b>M1から75kgで全セット揃え＋M3で77.5kgに挑戦</b>だ。肩甲骨を寄せて下げて丁寧に。77.5は肩に違和感が出たら即中止して75へ戻すこと。懸垂は最後まで出し切ろう。インクラインも肩甲骨を下げて固定＆崩れる前に止めよう！",
       minutes: 80,
       payoff: [
         { target: "胸", text: "ベンチで胸板に厚みが出て、シャツが前から押し返される。押す力そのものが強くなる。" },
@@ -58,16 +58,16 @@ window.KINTORE_DATA = {
       rule: "全セットで上限回数を達成したら、次回 +2.5〜5kg。",
       exercises: [
         {
-          no: "01", name: "バーベルベンチプレス", tag: "胸・メイン", last: "70kg × 8・8・9",
+          no: "01", name: "バーベルベンチプレス", tag: "胸・メイン", last: "70→75kg × 8・8・9（75kg自己新）",
           sets: [
             { label: "W1", warm: true, weight: "20kg", reps: "12回" },
             { label: "W2", warm: true, weight: "50kg", reps: "5回" },
-            { label: "M1", weight: "70kg", reps: "6〜8回", rest: "rest 2–3 min" },
-            { label: "M2", weight: "70kg", reps: "6〜8回", rest: "rest 2–3 min" },
-            { label: "M3", weight: "70kg", reps: "AMRAP ★", accent: true, rest: "rest 2–3 min" }
+            { label: "M1", weight: "75kg", reps: "6〜8回", rest: "rest 2–3 min" },
+            { label: "M2", weight: "75kg", reps: "6〜8回", rest: "rest 2–3 min" },
+            { label: "M3", weight: "77.5kg", reps: "AMRAP ★", accent: true, rest: "rest 2–3 min" }
           ],
-          why: "胸は大きな筋肉で高重量を扱えるので、上半身で最初に置く主役。6〜8回はしっかり重い負荷で筋力・筋肥大の両方を狙える回数域。M3だけ限界（AMRAP）で毎回の伸びを測る。Phase2で75〜80kg、Phase3で80〜90kgへ。",
-          tip: "肩甲骨を寄せて下げてから握る。バーは乳首のラインへ。最初の2週は70kg固定でフォーム優先。"
+          why: "胸は大きな筋肉で高重量を扱えるので、上半身で最初に置く主役。6〜8回はしっかり重い負荷で筋力・筋肥大の両方を狙える回数域。6/28に70kgが軽くなり自己判断で75kg×9まで到達＝“70kg卒業”の合図。Phase1の70kg固定期間も終わったので基準を75kgへ更新。今回は<b>M1から75kgで全セット揃え＋M3だけ77.5kgを試走</b>（6/28はM1が70kgで“全セット75”は未達だったため、まずここを揃える）。M3が安定して8回出せたら77.5〜80kg（Phase2）へ。",
+          tip: "肩甲骨を寄せて下げてから握る。バーは乳首のラインへ。今回はM1から75kgで揃え、M3だけ77.5kgに挑戦。肩に少しでも違和感が出たら77.5は中止して75kgに戻す（フォーム最優先）。"
         },
         {
           no: "02", name: "懸垂（自重）", tag: "背中・広がり", last: "自重 8・5・3 回",
@@ -81,17 +81,17 @@ window.KINTORE_DATA = {
           tip: "肩を下げてから引き、胸を張って鎖骨をバーに近づける。反動を使わず背中で引く。"
         },
         {
-          no: "03", name: "インクラインマシンプレス", tag: "胸上部・補助", last: "33.6kg × 6・8・10",
+          no: "03", name: "インクラインマシンプレス", tag: "胸上部・補助", last: "33.6kg × 7・8 / 34.85kg × 8",
           sets: [
             { label: "M1", weight: "33.6kg", reps: "8〜12回", rest: "rest 2 min" },
             { label: "M2", weight: "33.6kg", reps: "8〜12回", rest: "rest 2 min" },
             { label: "M3", weight: "33.6kg", reps: "AMRAP ★", accent: true, rest: "rest 2 min" }
           ],
           why: "ベンチで土台を作った後の補助。胸の上部（鎖骨側の盛り上がり）はベンチだけでは入りにくいので、角度をつけて狙う。マシンで安全に8〜12回の中回数で追い込む。慣れたらPhase2で36kgへ。",
-          tip: "胸の上部に効いているか意識。肘を開きすぎず、押し切ったら一瞬止める。"
+          tip: "胸の上部に効いているか意識。肘を開きすぎず、押し切ったら一瞬止める。引く局面（戻す動き）で肩甲骨を下げて固定すると右肩〜首の違和感を防げる（6/18・6/28の学び）。回数が増えてフォームが崩れると痛みやすいので、崩れる手前でセットを止める。"
         },
         {
-          no: "04", name: "ラットプルダウン<br>or シーテッドロー", tag: "背中・厚み", last: "ロー代替 30.4kg × 12・12",
+          no: "04", name: "ラットプルダウン<br>or シーテッドロー", tag: "背中・厚み", last: "アイソラテラルロー 35.4kg × 12・12",
           sets: [
             { label: "M1", weight: "77〜82kg", reps: "8〜10回", rest: "rest 2 min" },
             { label: "M2", weight: "77〜82kg", reps: "8〜10回", rest: "rest 2 min" },
@@ -109,7 +109,7 @@ window.KINTORE_DATA = {
       name: "Lower-A",
       titleJp: "スクワットメイン",
       lede: "スクワットを全種目の最優先に置く、脚の主役日。",
-      coachIntro: "Lower-Aの主役は<b>スクワット</b>。全種目で一番大事だから集中していこう。RDLはフォーム習得が目的、腰に違和感が出たら迷わず中止でOK！",
+      coachIntro: "Lower-Aの主役は<b>スクワット</b>。前回75kg×8・8・10（AMRAP）が余裕だったから、今日から<b>80kgに昇格</b>！全種目で一番大事だから集中していこう。RDLはフォーム習得が目的、腰に違和感が出たら迷わず中止でOK！",
       minutes: 80,
       payoff: [
         { target: "脚全体", text: "スクワットで太もも全体に厚みが出て、下半身の土台が安定する。" },
@@ -119,15 +119,15 @@ window.KINTORE_DATA = {
       rule: "全セットで上限回数を達成したら、次回 +2.5〜5kg。",
       exercises: [
         {
-          no: "01", name: "バーベルスクワット", tag: "脚・最優先", last: "75kg × 8・8・10",
+          no: "01", name: "バーベルスクワット", tag: "脚・最優先", last: "75kg × 8・8・10（AMRAP余裕）",
           sets: [
             { label: "W1", warm: true, weight: "20kg", reps: "12回" },
             { label: "W2", warm: true, weight: "60kg", reps: "5回" },
-            { label: "M1", weight: "75kg", reps: "5〜8回", rest: "rest 3 min" },
-            { label: "M2", weight: "75kg", reps: "5〜8回", rest: "rest 3 min" },
-            { label: "M3", weight: "75kg", reps: "AMRAP ★", accent: true, rest: "rest 3 min" }
+            { label: "M1", weight: "80kg", reps: "5〜8回", rest: "rest 3 min" },
+            { label: "M2", weight: "80kg", reps: "5〜8回", rest: "rest 3 min" },
+            { label: "M3", weight: "80kg", reps: "AMRAP ★", accent: true, rest: "rest 3 min" }
           ],
-          why: "スクワットは全種目中で最優先。脚という最大の筋肉群を高重量で動かすので、成長への効果が一番大きい。5〜8回の低〜中回数で筋力ベースを上げる。Phase2で80〜85kg、Phase3で87.5〜95kg・4〜6回へ。",
+          why: "スクワットは全種目中で最優先。脚という最大の筋肉群を高重量で動かすので、成長への効果が一番大きい。5〜8回の低〜中回数で筋力ベースを上げる。6/19に75kg×8・8・10（AMRAP）が余裕だったので2アップで80kgへ昇格。Phase2で80〜85kg、Phase3で87.5〜95kg・4〜6回へ。",
           tip: "全種目中で絶対に手を抜かない一番手。胸を張り、お尻を後ろに引いて深くしゃがむ。"
         },
         {
@@ -300,12 +300,18 @@ window.KINTORE_DATA = {
   progress: [
     { lift: "スクワット",       start: 75, current: 75, unit: "kg" },
     { lift: "RDL",             start: 70, current: 90, unit: "kg" },
-    { lift: "ベンチプレス",     start: 70, current: 70, unit: "kg" },
+    { lift: "ベンチプレス",     start: 70, current: 75, unit: "kg" },
     { lift: "ショルダープレス", start: 54, current: 54, unit: "kg" }
   ],
 
   /* これまでのトレーニング記録（新しい順）。トレ報告のたびに先頭へ1行追加する。 */
   log: [
+    {
+      date: "2026-06-28", sessionKey: "upperA",
+      highlights: "ベンチ 70→75kg×8・9（75kg自己新）／懸垂 自重8・6・4／インクライン 33.6×7・8＋34.85／アイソラロー 35.4×12・12",
+      detail: "バーベルベンチプレス W20×12・50×5／M 70×8・75×8・75×9（AMRAP・75kg自己新）／懸垂 W アシスト−26×8／自重 8・6・4／インクラインマシンプレス（3.6＋プレート）33.6kg×7・33.6kg×8・34.85kg×8（1set目に右肩違和感→肩甲骨を下げて解消）／アイソラテラルロー（ロー代替）35.4kg×12・12",
+      coach: "<b>目標</b>はベンチ70kg×3と背中で押し引きを伸ばすこと。実際は70が軽く感じて自分の判断で<b>75kg×8・9（AMRAP）まで到達——75kgは自己新記録</b>！これは“70kg卒業”の体からの合図で、2アップルール通りの大正解だよ。懸垂も自重8・6・4（前回8・5・3）と着実に前進◎。インクラインは1set目で右肩に違和感→<b>肩甲骨を下げる意識で解消</b>できたのは大収穫。ただ回数が増えてフォームが崩れると痛むので、崩れる手前でセットを止めるのが課題。次回ベンチは<b>M1=72.5 / M2=75 / M3=75kg AMRAP</b>、75kg全セット8回を狙おう（肩が痛む日は無理せず70kgでOK）！"
+    },
     {
       date: "2026-06-24", sessionKey: "lowerB",
       highlights: "RDL 90×10・10・10（大躍進）／スクワット70×10維持／腰の疲労でレッグプレス・カーフ中止",
@@ -352,14 +358,15 @@ window.KINTORE_DATA = {
     { date: "2026-06-02", part: "U" }, { date: "2026-06-03", part: "L" }, { date: "2026-06-05", part: "U" },
     { date: "2026-06-07", part: "L" }, { date: "2026-06-09", part: "U" }, { date: "2026-06-13", part: "U" },
     { date: "2026-06-15", part: "L" }, { date: "2026-06-18", part: "U" }, { date: "2026-06-19", part: "L" },
-    { date: "2026-06-22", part: "U" }, { date: "2026-06-24", part: "L" }
+    { date: "2026-06-22", part: "U" }, { date: "2026-06-24", part: "L" },
+    { date: "2026-06-28", part: "U" }
   ],
 
   /* 自己ベスト（PRボード）。主要種目の最高記録。更新したら値と date を直し、新記録は isNew:true に。 */
   records: [
-    { lift: "RDL",             weight: "90", unit: "kg", reps: "× 10",        date: "2026-06-24", isNew: true },
+    { lift: "ベンチプレス",     weight: "75", unit: "kg", reps: "× 9（AMRAP）", date: "2026-06-28", isNew: true },
+    { lift: "RDL",             weight: "90", unit: "kg", reps: "× 10",        date: "2026-06-24" },
     { lift: "スクワット",       weight: "85", unit: "kg", reps: "× 2",         date: "2026-06-15" },
-    { lift: "ベンチプレス",     weight: "70", unit: "kg", reps: "× 9（AMRAP）", date: "2026-06-18" },
     { lift: "ショルダープレス", weight: "54", unit: "kg", reps: "× 12",        date: "2026-06-22" },
     { lift: "懸垂（自重）",     weight: "8",  unit: "回", reps: "連続",         date: "2026-06-18" }
   ],
