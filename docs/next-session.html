@@ -45,6 +45,7 @@
     -webkit-font-smoothing: antialiased;
     padding-bottom: calc(78px + env(safe-area-inset-bottom));
   }
+  main { touch-action: pan-y; }
   .sheet { max-width: 600px; margin: 0 auto; padding: 26px 22px 28px; }
   .kicker { font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--oxblood); }
 
@@ -649,6 +650,7 @@
   function setupSwipeTabs() {
     var main = document.querySelector('main'), swipe = null;
     if (!main) return;
+    var useTouchEvents = ('ontouchstart' in window) || (window.navigator && window.navigator.maxTouchPoints > 0);
     function startSwipe(x, y, target, id) {
       swipe = { x: x, y: y, id: id, blocked: isSwipeBlockedTarget(target) };
     }
@@ -661,7 +663,7 @@
       stepTab(dx < 0 ? 1 : -1);
     }
 
-    if (window.PointerEvent) {
+    if (window.PointerEvent && !useTouchEvents) {
       main.addEventListener('pointerdown', function (e) {
         if (swipe && e.pointerId !== swipe.id) { swipe = null; return; }
         if (e.pointerType === 'mouse' && e.button !== 0) return;
