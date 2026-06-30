@@ -45,11 +45,11 @@
     -webkit-font-smoothing: antialiased;
     padding-bottom: calc(78px + env(safe-area-inset-bottom));
   }
-  main { touch-action: pan-y; position: relative; overflow-x: hidden; }
+  main { touch-action: pan-y; overscroll-behavior-x: contain; position: relative; overflow-x: hidden; }
   .panel { display: none; width: 100%; }
   .panel.show { display: block; }
-  .panel.slide-layer { display: block; position: absolute; inset: 0 auto auto 0; width: 100%; will-change: transform, opacity; }
-  .panel.slide-anim { transition: transform .28s cubic-bezier(.22,.61,.36,1), opacity .28s ease; }
+  .panel.slide-layer { display: block; position: absolute; inset: 0 auto auto 0; width: 100%; backface-visibility: hidden; will-change: transform, opacity; }
+  .panel.slide-anim { transition: transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s ease; }
   .sheet { max-width: 600px; margin: 0 auto; padding: 26px 22px 28px; }
   .kicker { font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--oxblood); }
 
@@ -626,8 +626,17 @@
   var TAB_ORDER = ['program', 'next', 'log'];
   var currentTab = 'next';
   var isTabAnimating = false;
+  var tabAnimationTimer = null;
 
   function tabIndex(name) { return TAB_ORDER.indexOf(name); }
+
+  function panelByName(name) { return document.getElementById('tab-' + name); }
+
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  function panelX(x) { return 'translate3d(' + x + 'px, 0, 0)'; }
 
   function setTabButton(name) {
     var btns = document.querySelectorAll('.tabbar button');
@@ -640,7 +649,7 @@
     p.style.opacity = '';
   }
 
-  function settleTab(panel, name) {
+  function settleTab(panel, name, keepScroll) {
     var panels = document.querySelectorAll('.panel');
     for (var i = 0; i < panels.length; i++) resetPanel(panels[i]);
     panel.classList.add('show');
@@ -648,21 +657,33 @@
     currentTab = name;
     setTabButton(name);
     try { sessionStorage.setItem('ks_tab', name); } catch (e) {}
-    window.scrollTo(0, 0);
+    if (!keepScroll) window.scrollTo(0, 0);
     isTabAnimating = false;
+  }
+
+  function setSlideHeight(main, a, b) {
+    var h = a ? a.scrollHeight : 0;
+    if (b) h = Math.max(h, b.scrollHeight);
+    main.style.minHeight = h + 'px';
+  }
+
+  function prepareSlideLayer(panel) {
+    panel.classList.add('show', 'slide-layer');
+    panel.classList.remove('slide-anim');
   }
 
   /* タブ切替 */
   function showTab(name) {
     if (TAB_ORDER.indexOf(name) === -1) name = 'next';
-    if (name === currentTab && document.getElementById('tab-' + name).classList.contains('show')) return;
+    if (name === currentTab && panelByName(name).classList.contains('show')) return;
     if (isTabAnimating) return;
+    if (tabAnimationTimer) window.clearTimeout(tabAnimationTimer);
     var oldName = currentTab;
-    var oldPanel = document.getElementById('tab-' + oldName);
-    var newPanel = document.getElementById('tab-' + name);
+    var oldPanel = panelByName(oldName);
+    var newPanel = panelByName(name);
     var oldIndex = tabIndex(oldName), newIndex = tabIndex(name);
-    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var canAnimate = oldPanel && oldPanel.classList.contains('show') && oldIndex !== -1 && newIndex !== -1 && !reduceMotion;
+    var reduceMotion = prefersReducedMotion();
+    var canAnimate = oldPanel && newPanel && oldPanel.classList.contains('show') && oldIndex !== -1 && newIndex !== -1 && !reduceMotion;
     currentTab = name;
     setTabButton(name);
     try { sessionStorage.setItem('ks_tab', name); } catch (e) {}
@@ -670,27 +691,28 @@
       isTabAnimating = true;
       var dir = newIndex > oldIndex ? 1 : -1;
       var main = document.querySelector('main');
-      newPanel.classList.add('show', 'slide-layer');
-      oldPanel.classList.add('show', 'slide-layer');
-      main.style.minHeight = Math.max(oldPanel.scrollHeight, newPanel.scrollHeight) + 'px';
-      oldPanel.style.transform = 'translateX(0)';
+      var width = Math.max(1, main.getBoundingClientRect().width || window.innerWidth || 1);
+      prepareSlideLayer(newPanel);
+      prepareSlideLayer(oldPanel);
+      setSlideHeight(main, oldPanel, newPanel);
+      oldPanel.style.transform = panelX(0);
       oldPanel.style.opacity = '1';
-      newPanel.style.transform = 'translateX(' + (dir * 100) + '%)';
-      newPanel.style.opacity = '.98';
+      newPanel.style.transform = panelX(dir * width);
+      newPanel.style.opacity = '1';
       requestAnimationFrame(function () {
         oldPanel.classList.add('slide-anim');
         newPanel.classList.add('slide-anim');
-        oldPanel.style.transform = 'translateX(' + (-dir * 42) + '%)';
-        oldPanel.style.opacity = '.25';
-        newPanel.style.transform = 'translateX(0)';
+        oldPanel.style.transform = panelX(-dir * width);
+        oldPanel.style.opacity = '1';
+        newPanel.style.transform = panelX(0);
         newPanel.style.opacity = '1';
       });
-      window.setTimeout(function () { settleTab(newPanel, name); }, 310);
+      tabAnimationTimer = window.setTimeout(function () { settleTab(newPanel, name); }, 300);
       return;
     }
     var panels = document.querySelectorAll('.panel');
     for (var i = 0; i < panels.length; i++) resetPanel(panels[i]);
-    document.getElementById('tab-' + name).classList.add('show');
+    panelByName(name).classList.add('show');
     window.scrollTo(0, 0);
   }
 
@@ -707,51 +729,224 @@
 
   /* 横スワイプでタブを移動。縦スクロールと誤爆しないよう、横移動が明確な時だけ反応する。 */
   function setupSwipeTabs() {
-    var main = document.querySelector('main'), swipe = null;
+    var main = document.querySelector('main'), swipe = null, raf = 0;
     if (!main) return;
     var useTouchEvents = ('ontouchstart' in window) || (window.navigator && window.navigator.maxTouchPoints > 0);
-    function startSwipe(x, y, target, id) {
-      swipe = { x: x, y: y, id: id, blocked: isSwipeBlockedTarget(target) };
+
+    function nowMs() {
+      return (window.performance && performance.now) ? performance.now() : Date.now();
     }
-    function finishSwipe(x, y) {
-      if (!swipe || swipe.blocked) return;
-      var dx = x - swipe.x, dy = y - swipe.y;
-      var ax = Math.abs(dx), ay = Math.abs(dy);
+
+    function trackPoint(x) {
+      if (!swipe) return;
+      var t = nowMs();
+      swipe.samples.push({ x: x, t: t });
+      while (swipe.samples.length > 6) swipe.samples.shift();
+    }
+
+    function swipeVelocity() {
+      if (!swipe || swipe.samples.length < 2) return 0;
+      var last = swipe.samples[swipe.samples.length - 1];
+      var first = swipe.samples[0];
+      for (var i = swipe.samples.length - 2; i >= 0; i--) {
+        if (last.t - swipe.samples[i].t > 120) break;
+        first = swipe.samples[i];
+      }
+      return (last.x - first.x) / Math.max(1, last.t - first.t);
+    }
+
+    function clearSwipeLayers(keepName) {
+      var panels = document.querySelectorAll('.panel');
+      for (var i = 0; i < panels.length; i++) resetPanel(panels[i]);
+      panelByName(keepName).classList.add('show');
+      main.style.minHeight = '';
+    }
+    function startSwipe(x, y, target, id) {
+      if (isTabAnimating || isSwipeBlockedTarget(target)) { swipe = null; return; }
+      var idx = tabIndex(currentTab);
+      if (idx === -1) return;
+      swipe = {
+        id: id,
+        startX: x,
+        startY: y,
+        dx: 0,
+        width: 0,
+        fromName: currentTab,
+        fromIndex: idx,
+        fromPanel: panelByName(currentTab),
+        toName: null,
+        toPanel: null,
+        dir: 0,
+        edge: false,
+        horizontal: false,
+        vertical: false,
+        samples: [{ x: x, t: nowMs() }]
+      };
+    }
+    function prepareDragPanels(dir) {
+      if (!swipe || swipe.dir === dir) return;
+      var targetIndex = swipe.fromIndex + dir;
+      swipe.dir = dir;
+      swipe.toName = TAB_ORDER[targetIndex] || null;
+      swipe.toPanel = swipe.toName ? panelByName(swipe.toName) : null;
+      swipe.edge = !swipe.toPanel;
+      swipe.width = Math.max(1, main.getBoundingClientRect().width || window.innerWidth || 1);
+      clearSwipeLayers(swipe.fromName);
+      prepareSlideLayer(swipe.fromPanel);
+      if (swipe.toPanel) prepareSlideLayer(swipe.toPanel);
+      setSlideHeight(main, swipe.fromPanel, swipe.toPanel);
+    }
+
+    function applyDragPosition() {
+      raf = 0;
+      if (!swipe || !swipe.horizontal) return;
+      var dx = swipe.dx;
+      if (swipe.edge) {
+        dx = dx * .28;
+        swipe.fromPanel.style.transform = panelX(dx);
+        swipe.fromPanel.style.opacity = '1';
+        return;
+      }
+      var width = swipe.width || Math.max(1, main.getBoundingClientRect().width || window.innerWidth || 1);
+      var maxDrag = width * .98;
+      dx = Math.max(-maxDrag, Math.min(maxDrag, dx));
+      swipe.fromPanel.style.transform = panelX(dx);
+      swipe.fromPanel.style.opacity = '1';
+      swipe.toPanel.style.transform = panelX(swipe.dir * width + dx);
+      swipe.toPanel.style.opacity = '1';
+    }
+
+    function moveSwipe(x, y, e) {
+      if (!swipe) return;
+      var rawDx = x - swipe.startX;
+      var rawDy = y - swipe.startY;
+      var ax = Math.abs(rawDx), ay = Math.abs(rawDy);
+      if (!swipe.horizontal && !swipe.vertical) {
+        if (ay > 10 && ay > ax * 1.15) { swipe.vertical = true; swipe = null; return; }
+        if (ax > 10 && ax > ay * 1.25) {
+          swipe.horizontal = true;
+          isTabAnimating = true;
+        } else {
+          return;
+        }
+      }
+      if (!swipe || !swipe.horizontal) return;
+      if (e && e.cancelable) e.preventDefault();
+      if (rawDx === 0) return;
+      prepareDragPanels(rawDx < 0 ? 1 : -1);
+      swipe.dx = rawDx;
+      trackPoint(x);
+      if (!raf) raf = requestAnimationFrame(applyDragPosition);
+    }
+
+    function snapSwipe(commit) {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; applyDragPosition(); }
+      var s = swipe;
       swipe = null;
-      if (ax < 60 || ax < ay * 1.5 || ay > 90) return;
-      stepTab(dx < 0 ? 1 : -1);
+      if (!s || !s.fromPanel) { isTabAnimating = false; return; }
+      var reduceMotion = prefersReducedMotion();
+      var duration = reduceMotion ? 0 : 260;
+      s.fromPanel.classList.add('slide-anim');
+      if (s.toPanel) s.toPanel.classList.add('slide-anim');
+      requestAnimationFrame(function () {
+        if (commit && s.toPanel) {
+          s.fromPanel.style.transform = panelX(-s.dir * s.width);
+          s.fromPanel.style.opacity = '1';
+          s.toPanel.style.transform = panelX(0);
+          s.toPanel.style.opacity = '1';
+          tabAnimationTimer = window.setTimeout(function () { settleTab(s.toPanel, s.toName); }, duration + 30);
+        } else {
+          s.fromPanel.style.transform = panelX(0);
+          s.fromPanel.style.opacity = '1';
+          if (s.toPanel) {
+            s.toPanel.style.transform = panelX(s.dir * s.width);
+            s.toPanel.style.opacity = '1';
+          }
+          tabAnimationTimer = window.setTimeout(function () { settleTab(s.fromPanel, s.fromName, true); }, duration + 30);
+        }
+      });
+    }
+
+    function finishSwipe(x, y) {
+      if (!swipe) return;
+      moveSwipe(x, y, null);
+      if (!swipe || !swipe.horizontal) { swipe = null; isTabAnimating = false; return; }
+      var width = swipe.width || Math.max(1, main.getBoundingClientRect().width || window.innerWidth || 1);
+      var progress = Math.abs(swipe.dx) / width;
+      var velocity = swipeVelocity();
+      var velocityMatches = (swipe.dir === 1 && velocity < -.45) || (swipe.dir === -1 && velocity > .45);
+      var commit = !swipe.edge && (progress >= .33 || (Math.abs(swipe.dx) > 24 && velocityMatches));
+      snapSwipe(commit);
+    }
+
+    function cancelSwipe() {
+      if (!swipe) return;
+      if (swipe.horizontal) snapSwipe(false);
+      else { swipe = null; isTabAnimating = false; }
     }
 
     if (window.PointerEvent && !useTouchEvents) {
       main.addEventListener('pointerdown', function (e) {
-        if (swipe && e.pointerId !== swipe.id) { swipe = null; return; }
+        if (swipe && e.pointerId !== swipe.id) { cancelSwipe(); return; }
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         startSwipe(e.clientX, e.clientY, e.target, e.pointerId);
+        if (swipe && main.setPointerCapture) {
+          try { main.setPointerCapture(e.pointerId); } catch (err) {}
+        }
       }, { passive: true });
+      main.addEventListener('pointermove', function (e) {
+        if (!swipe || e.pointerId !== swipe.id) return;
+        moveSwipe(e.clientX, e.clientY, e);
+      }, { passive: false });
       main.addEventListener('pointerup', function (e) {
         if (!swipe || e.pointerId !== swipe.id) return;
+        if (main.releasePointerCapture) {
+          try { main.releasePointerCapture(e.pointerId); } catch (err) {}
+        }
         finishSwipe(e.clientX, e.clientY);
       }, { passive: true });
       main.addEventListener('pointercancel', function (e) {
-        if (!swipe || e.pointerId === swipe.id) swipe = null;
+        if (main.releasePointerCapture) {
+          try { main.releasePointerCapture(e.pointerId); } catch (err) {}
+        }
+        if (!swipe || e.pointerId === swipe.id) cancelSwipe();
+      }, { passive: true });
+      return;
+    }
+
+    if (!useTouchEvents) {
+      main.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return;
+        startSwipe(e.clientX, e.clientY, e.target, 'mouse');
+      }, { passive: true });
+      window.addEventListener('mousemove', function (e) {
+        if (!swipe || swipe.id !== 'mouse') return;
+        moveSwipe(e.clientX, e.clientY, e);
+      }, { passive: false });
+      window.addEventListener('mouseup', function (e) {
+        if (!swipe || swipe.id !== 'mouse') return;
+        finishSwipe(e.clientX, e.clientY);
       }, { passive: true });
       return;
     }
 
     main.addEventListener('touchstart', function (e) {
-      if (!e.touches || e.touches.length !== 1) { swipe = null; return; }
+      if (!e.touches || e.touches.length !== 1) { cancelSwipe(); return; }
       var t = e.touches[0];
       startSwipe(t.clientX, t.clientY, e.target, 'touch');
     }, { passive: true });
     main.addEventListener('touchmove', function (e) {
-      if (swipe && e.touches && e.touches.length !== 1) swipe = null;
-    }, { passive: true });
+      if (!swipe) return;
+      if (!e.touches || e.touches.length !== 1) { cancelSwipe(); return; }
+      var t = e.touches[0];
+      moveSwipe(t.clientX, t.clientY, e);
+    }, { passive: false });
     main.addEventListener('touchend', function (e) {
       if (!swipe || !e.changedTouches || e.changedTouches.length !== 1) return;
       var t = e.changedTouches[0];
       finishSwipe(t.clientX, t.clientY);
     }, { passive: true });
-    main.addEventListener('touchcancel', function () { swipe = null; }, { passive: true });
+    main.addEventListener('touchcancel', cancelSwipe, { passive: true });
   }
 
   /* ローテーション：その場で開閉（同時に開くのは1つ） */
