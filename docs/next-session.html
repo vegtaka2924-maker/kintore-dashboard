@@ -45,7 +45,11 @@
     -webkit-font-smoothing: antialiased;
     padding-bottom: calc(78px + env(safe-area-inset-bottom));
   }
-  main { touch-action: pan-y; }
+  main { touch-action: pan-y; position: relative; overflow-x: hidden; }
+  .panel { display: none; width: 100%; }
+  .panel.show { display: block; }
+  .panel.slide-layer { display: block; position: absolute; inset: 0 auto auto 0; width: 100%; will-change: transform, opacity; }
+  .panel.slide-anim { transition: transform .28s cubic-bezier(.22,.61,.36,1), opacity .28s ease; }
   .sheet { max-width: 600px; margin: 0 auto; padding: 26px 22px 28px; }
   .kicker { font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--oxblood); }
 
@@ -112,9 +116,9 @@
   .colophon .next { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-family: var(--serif-jp); font-size: 13px; color: var(--ink-soft); }
   .colophon .next b { color: var(--oxblood); font-weight: 700; }
 
-  /* タブ表示切替 */
-  .panel { display: none; }
-  .panel.show { display: block; }
+  @media (prefers-reduced-motion: reduce) {
+    .panel.slide-anim { transition: none; }
+  }
 
   /* このプログラムについて */
   .about { margin: 8px 0 4px; }
@@ -621,17 +625,72 @@
 
   var TAB_ORDER = ['program', 'next', 'log'];
   var currentTab = 'next';
+  var isTabAnimating = false;
+
+  function tabIndex(name) { return TAB_ORDER.indexOf(name); }
+
+  function setTabButton(name) {
+    var btns = document.querySelectorAll('.tabbar button');
+    for (var j = 0; j < btns.length; j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-tab') === name);
+  }
+
+  function resetPanel(p) {
+    p.classList.remove('show', 'slide-layer', 'slide-anim');
+    p.style.transform = '';
+    p.style.opacity = '';
+  }
+
+  function settleTab(panel, name) {
+    var panels = document.querySelectorAll('.panel');
+    for (var i = 0; i < panels.length; i++) resetPanel(panels[i]);
+    panel.classList.add('show');
+    document.querySelector('main').style.minHeight = '';
+    currentTab = name;
+    setTabButton(name);
+    try { sessionStorage.setItem('ks_tab', name); } catch (e) {}
+    window.scrollTo(0, 0);
+    isTabAnimating = false;
+  }
 
   /* タブ切替 */
   function showTab(name) {
     if (TAB_ORDER.indexOf(name) === -1) name = 'next';
+    if (name === currentTab && document.getElementById('tab-' + name).classList.contains('show')) return;
+    if (isTabAnimating) return;
+    var oldName = currentTab;
+    var oldPanel = document.getElementById('tab-' + oldName);
+    var newPanel = document.getElementById('tab-' + name);
+    var oldIndex = tabIndex(oldName), newIndex = tabIndex(name);
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var canAnimate = oldPanel && oldPanel.classList.contains('show') && oldIndex !== -1 && newIndex !== -1 && !reduceMotion;
     currentTab = name;
-    var panels = document.querySelectorAll('.panel');
-    for (var i = 0; i < panels.length; i++) panels[i].classList.remove('show');
-    document.getElementById('tab-' + name).classList.add('show');
-    var btns = document.querySelectorAll('.tabbar button');
-    for (var j = 0; j < btns.length; j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-tab') === name);
+    setTabButton(name);
     try { sessionStorage.setItem('ks_tab', name); } catch (e) {}
+    if (canAnimate) {
+      isTabAnimating = true;
+      var dir = newIndex > oldIndex ? 1 : -1;
+      var main = document.querySelector('main');
+      newPanel.classList.add('show', 'slide-layer');
+      oldPanel.classList.add('show', 'slide-layer');
+      main.style.minHeight = Math.max(oldPanel.scrollHeight, newPanel.scrollHeight) + 'px';
+      oldPanel.style.transform = 'translateX(0)';
+      oldPanel.style.opacity = '1';
+      newPanel.style.transform = 'translateX(' + (dir * 100) + '%)';
+      newPanel.style.opacity = '.98';
+      requestAnimationFrame(function () {
+        oldPanel.classList.add('slide-anim');
+        newPanel.classList.add('slide-anim');
+        oldPanel.style.transform = 'translateX(' + (-dir * 42) + '%)';
+        oldPanel.style.opacity = '.25';
+        newPanel.style.transform = 'translateX(0)';
+        newPanel.style.opacity = '1';
+      });
+      window.setTimeout(function () { settleTab(newPanel, name); }, 310);
+      return;
+    }
+    var panels = document.querySelectorAll('.panel');
+    for (var i = 0; i < panels.length; i++) resetPanel(panels[i]);
+    document.getElementById('tab-' + name).classList.add('show');
     window.scrollTo(0, 0);
   }
 
