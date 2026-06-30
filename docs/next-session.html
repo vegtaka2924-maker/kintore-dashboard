@@ -618,8 +618,13 @@
     if (CAL.sel) calDetail(CAL.sel);
   }
 
+  var TAB_ORDER = ['program', 'next', 'log'];
+  var currentTab = 'next';
+
   /* タブ切替 */
   function showTab(name) {
+    if (TAB_ORDER.indexOf(name) === -1) name = 'next';
+    currentTab = name;
     var panels = document.querySelectorAll('.panel');
     for (var i = 0; i < panels.length; i++) panels[i].classList.remove('show');
     document.getElementById('tab-' + name).classList.add('show');
@@ -627,6 +632,65 @@
     for (var j = 0; j < btns.length; j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-tab') === name);
     try { sessionStorage.setItem('ks_tab', name); } catch (e) {}
     window.scrollTo(0, 0);
+  }
+
+  function stepTab(dir) {
+    var i = TAB_ORDER.indexOf(currentTab);
+    if (i === -1) i = 1;
+    var next = Math.max(0, Math.min(TAB_ORDER.length - 1, i + dir));
+    if (next !== i) showTab(TAB_ORDER[next]);
+  }
+
+  function isSwipeBlockedTarget(el) {
+    return !!(el && el.closest && el.closest('.tabbar, button, a, input, textarea, select, [onclick], [role="button"]'));
+  }
+
+  /* 横スワイプでタブを移動。縦スクロールと誤爆しないよう、横移動が明確な時だけ反応する。 */
+  function setupSwipeTabs() {
+    var main = document.querySelector('main'), swipe = null;
+    if (!main) return;
+    function startSwipe(x, y, target, id) {
+      swipe = { x: x, y: y, id: id, blocked: isSwipeBlockedTarget(target) };
+    }
+    function finishSwipe(x, y) {
+      if (!swipe || swipe.blocked) return;
+      var dx = x - swipe.x, dy = y - swipe.y;
+      var ax = Math.abs(dx), ay = Math.abs(dy);
+      swipe = null;
+      if (ax < 60 || ax < ay * 1.5 || ay > 90) return;
+      stepTab(dx < 0 ? 1 : -1);
+    }
+
+    if (window.PointerEvent) {
+      main.addEventListener('pointerdown', function (e) {
+        if (swipe && e.pointerId !== swipe.id) { swipe = null; return; }
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        startSwipe(e.clientX, e.clientY, e.target, e.pointerId);
+      }, { passive: true });
+      main.addEventListener('pointerup', function (e) {
+        if (!swipe || e.pointerId !== swipe.id) return;
+        finishSwipe(e.clientX, e.clientY);
+      }, { passive: true });
+      main.addEventListener('pointercancel', function (e) {
+        if (!swipe || e.pointerId === swipe.id) swipe = null;
+      }, { passive: true });
+      return;
+    }
+
+    main.addEventListener('touchstart', function (e) {
+      if (!e.touches || e.touches.length !== 1) { swipe = null; return; }
+      var t = e.touches[0];
+      startSwipe(t.clientX, t.clientY, e.target, 'touch');
+    }, { passive: true });
+    main.addEventListener('touchmove', function (e) {
+      if (swipe && e.touches && e.touches.length !== 1) swipe = null;
+    }, { passive: true });
+    main.addEventListener('touchend', function (e) {
+      if (!swipe || !e.changedTouches || e.changedTouches.length !== 1) return;
+      var t = e.changedTouches[0];
+      finishSwipe(t.clientX, t.clientY);
+    }, { passive: true });
+    main.addEventListener('touchcancel', function () { swipe = null; }, { passive: true });
   }
 
   /* ローテーション：その場で開閉（同時に開くのは1つ） */
@@ -641,6 +705,7 @@
   buildNext();
   buildProgram();
   buildLog();
+  setupSwipeTabs();
   var start = 'next';
   try { start = sessionStorage.getItem('ks_tab') || D.meta.defaultTab || 'next'; } catch (e) { start = D.meta.defaultTab || 'next'; }
   showTab(start);
