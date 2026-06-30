@@ -122,17 +122,25 @@
   .ai-h { font-family: var(--serif-jp); font-weight: 600; font-size: 14px; color: var(--oxblood); display: block; margin-bottom: 2px; }
   .ai-p { font-size: 13px; line-height: 1.7; color: var(--ink); }
 
-  /* 進捗（回数バー） */
-  .prog-week { margin: 24px 0 26px; }
-  .pw-row { display: flex; justify-content: space-between; align-items: baseline; }
-  .pw-phase { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--oxblood); }
-  .pw-row2 { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
-  .pw-prog-lbl { font-family: var(--serif-jp); font-size: 13.5px; color: var(--ink-soft); }
-  .pw-count { font-family: var(--serif-latin); font-size: 15px; color: var(--ink-soft); white-space: nowrap; }
-  .pw-count b { font-size: 27px; font-weight: 700; color: var(--oxblood); }
-  .pw-bar { height: 8px; background: var(--rule); border-radius: 4px; overflow: hidden; margin: 10px 0 10px; }
-  .pw-fill { height: 100%; background: var(--oxblood); }
-  .pw-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
+  /* 今のプログラム進捗（3タブ共通） */
+  .program-progress { margin: 20px 0 26px; }
+  .pp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 14px; flex-wrap: wrap; }
+  .pp-phase { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--oxblood); text-align: right; }
+  .pp-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 12px; margin-top: 10px; flex-wrap: wrap; }
+  .pp-label { font-family: var(--serif-jp); font-size: 13.5px; color: var(--ink-soft); }
+  .pp-count { font-family: var(--serif-latin); font-size: 15px; color: var(--ink-soft); white-space: nowrap; }
+  .pp-count b { font-size: 27px; font-weight: 700; color: var(--oxblood); }
+  .pp-dots { display: flex; flex-wrap: wrap; gap: 7px 8px; margin: 12px 0 10px; }
+  .pp-week { display: inline-flex; gap: 3px; }
+  .pp-dot { width: 8.5px; height: 8.5px; border-radius: 50%; border: 1.5px solid var(--rule-strong); background: transparent; box-sizing: border-box; }
+  .pp-dot.done { border-color: var(--oxblood); background: var(--oxblood); }
+  .pp-dot.next { border-color: var(--oxblood); background: var(--paper); box-shadow: 0 0 0 2px rgba(124, 42, 34, .14); }
+  .pp-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
+  @media (max-width: 360px) {
+    .pp-row { align-items: flex-start; }
+    .pp-dots { gap: 6px 7px; }
+    .pp-dot { width: 8px; height: 8px; }
+  }
 
   /* ローテーション＝アコーディオン */
   .rot-list { margin: 6px 0 26px; border-top: 2px solid var(--ink); }
@@ -188,15 +196,7 @@
 
   /* 継続カレンダー（ログタブ上部） */
   .cal { margin: 4px 0 30px; }
-  .cal-prog { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
-  .cal-prog-lbl { font-family: var(--sans-jp); font-size: 11px; color: var(--ink-soft); }
-  .cal-prog-num { font-size: 11px; color: var(--ink-soft); }
-  .cal-prog-num b { font-size: 18px; font-weight: 700; color: var(--oxblood); }
-  .cal-strip { display: flex; gap: 6px; margin-top: 8px; }
-  .cal-strip .wk { display: flex; gap: 2px; flex: 1; }
-  .cal-seg { height: 15px; flex: 1; border-radius: 3px; background: #E2D9C7; }
-  .cal-seg.done { background: var(--oxblood); }
-  .cal-seg.now { background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--oxblood); }
+  .cal .program-progress { margin-top: 10px; }
   .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
   .cal-nav button { border: 0; background: none; cursor: pointer; color: var(--oxblood); font-size: 22px; line-height: 1; padding: 2px 12px; }
   .cal-nav .mlabel { font-family: var(--serif-jp); font-weight: 600; font-size: 19px; }
@@ -363,10 +363,28 @@
 
   function fmtDate(d) { var p = d.split('-'); return (+p[1]) + '/' + (+p[2]); }
 
+  /* 36回分の進捗を3タブで同じ見た目にする。数字の真実源は src/data.js の meta。 */
+  function programProgress() {
+    var m = D.meta, done = m.sessionsDone || 0, total = m.sessionsTotal || 0, next = done + 1;
+    var status = done >= total ? '全' + total + '回完了です。' : '全' + total + '回中' + done + '回完了。次は' + next + '回目です。';
+    var dots = '';
+    for (var i = 1; i <= total; i++) {
+      if ((i - 1) % 3 === 0) dots += '<span class="pp-week" aria-hidden="true">';
+      dots += '<span class="pp-dot' + (i <= done ? ' done' : (i === next ? ' next' : '')) + '"></span>';
+      if (i % 3 === 0 || i === total) dots += '</span>';
+    }
+    return '<section class="program-progress" aria-label="今のプログラム進捗">'
+      + '<div class="pp-head"><span class="kicker">Current Program</span><span class="pp-phase">' + m.phaseLabel + '</span></div>'
+      + '<div class="pp-row"><span class="pp-label">今のプログラム（週3 × 12週）</span>'
+      + '<span class="pp-count"><b>' + done + '</b> / ' + total + ' 回</span></div>'
+      + '<div class="pp-dots" aria-label="' + status + '">' + dots + '</div>'
+      + '<p class="pp-note">' + m.phaseNote + '</p></section>';
+  }
+
   /* 次回タブ */
   function buildNext() {
     var cur = D.sessions[D.currentKey];
-    var h = masthead(cur) + (cur.coachIntro ? coachBlock(cur.coachIntro) : '')
+    var h = masthead(cur) + programProgress() + (cur.coachIntro ? coachBlock(cur.coachIntro) : '')
       + sessionInner(cur);
     var last = D.log && D.log[0];
     if (last) {
@@ -384,24 +402,18 @@
   /* プログラムタブ */
   function buildProgram() {
     var m = D.meta;
-    var pct = Math.round(m.sessionsDone / m.sessionsTotal * 100);
     var h = '<header class="masthead"><div class="masthead-top">'
       + '<span class="kicker">Program</span><span class="date">' + m.phaseLabel + '</span></div>'
       + '<h1 class="title sm">プログラム</h1><div class="title-jp">' + m.splitName + '</div>'
       + '<p class="lede">' + m.overview + '</p></header>';
+
+    h += programProgress();
 
     if (m.about && m.about.length) {
       h += '<section class="about"><span class="kicker k">このプログラムについて</span>';
       m.about.forEach(function (a) { h += '<div class="about-item"><span class="ai-h">' + a.h + '</span><p class="ai-p">' + a.p + '</p></div>'; });
       h += '</section>';
     }
-
-    h += '<div class="prog-week"><div class="pw-row"><span class="kicker">進捗</span>'
-      + '<span class="pw-phase">' + m.phaseLabel + '</span></div>'
-      + '<div class="pw-row2"><span class="pw-prog-lbl">全12週プログラム</span>'
-      + '<span class="pw-count"><b>' + m.sessionsDone + '</b> / ' + m.sessionsTotal + ' 回</span></div>'
-      + '<div class="pw-bar"><div class="pw-fill" style="width:' + pct + '%"></div></div>'
-      + '<p class="pw-note">' + m.phaseNote + '</p></div>';
 
     h += '<span class="kicker">ローテーション（タップで開く）</span><div class="rot-list">';
     D.rotation.forEach(function (k) {
@@ -502,9 +514,7 @@
   function calShell() {
     return '<section class="cal">'
       + '<span class="kicker">Continuity ・ つづけた記録</span>'
-      + '<div class="cal-prog"><span class="cal-prog-lbl">今のプログラム（週3 × 12週）</span>'
-      + '<span class="cal-prog-num"><b>' + D.meta.sessionsDone + '</b> / ' + D.meta.sessionsTotal + '回</span></div>'
-      + '<div class="cal-strip" id="cal-strip"></div>'
+      + programProgress()
       + '<div class="cal-nav"><button onclick="calStep(-1)" aria-label="前の月" id="cal-prev">‹</button>'
       + '<div><span class="mlabel" id="cal-mlabel"></span><span class="mlatin" id="cal-mlatin"></span></div>'
       + '<button onclick="calStep(1)" aria-label="次の月" id="cal-next">›</button></div>'
@@ -516,20 +526,6 @@
       + '<span><span class="sw" style="border:2px solid var(--oxblood)"></span>今日</span>'
       + '<span style="color:var(--ink-faint)">上＝上半身 / 下＝下半身</span></div>'
       + '<div class="cal-stats" id="cal-stats"></div></section>';
-  }
-
-  function calRenderStrip() {
-    var done = D.meta.sessionsDone, total = D.meta.sessionsTotal, per = 3, wks = Math.ceil(total / per), nowSeg = done + 1, s = '';
-    for (var w = 0; w < wks; w++) {
-      s += '<div class="wk">';
-      for (var k = 0; k < per; k++) {
-        var n = w * per + k + 1;
-        if (n > total) { s += '<div class="cal-seg" style="visibility:hidden"></div>'; continue; }
-        s += '<div class="cal-seg' + (n <= done ? ' done' : (n === nowSeg ? ' now' : '')) + '"></div>';
-      }
-      s += '</div>';
-    }
-    document.getElementById('cal-strip').innerHTML = s;
   }
 
   function calRender() {
@@ -618,7 +614,6 @@
     CAL.idx = CAL.months.length - 1;
     var dates = Object.keys(ATTMAP).sort();
     CAL.sel = dates.length ? dates[dates.length - 1] : null;
-    calRenderStrip();
     calRender();
     if (CAL.sel) calDetail(CAL.sel);
   }
