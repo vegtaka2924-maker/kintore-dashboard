@@ -125,8 +125,12 @@
   /* 進捗（回数バー） */
   .prog-week { margin: 24px 0 26px; }
   .pw-row { display: flex; justify-content: space-between; align-items: baseline; }
-  .pw-week { font-family: var(--serif-latin); font-style: italic; font-size: 13px; color: var(--ink-soft); }
-  .pw-bar { height: 8px; background: var(--rule); border-radius: 4px; overflow: hidden; margin: 8px 0 10px; }
+  .pw-phase { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--oxblood); }
+  .pw-row2 { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; }
+  .pw-prog-lbl { font-family: var(--serif-jp); font-size: 13.5px; color: var(--ink-soft); }
+  .pw-count { font-family: var(--serif-latin); font-size: 15px; color: var(--ink-soft); white-space: nowrap; }
+  .pw-count b { font-size: 27px; font-weight: 700; color: var(--oxblood); }
+  .pw-bar { height: 8px; background: var(--rule); border-radius: 4px; overflow: hidden; margin: 10px 0 10px; }
   .pw-fill { height: 100%; background: var(--oxblood); }
   .pw-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
 
@@ -177,6 +181,10 @@
   .coach-name { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--oxblood); margin-bottom: 4px; }
   .coach-bubble p { font-size: 13px; line-height: 1.8; color: var(--ink); }
   .coach-bubble p b { color: var(--oxblood); font-weight: 700; }
+  .coach-bubble p + p { margin-top: 9px; }
+  .coach-bubble .coach-h { color: var(--oxblood); font-weight: 700; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; margin-top: 12px; }
+  .coach-bubble .coach-h::before { content: "— "; }
+  .coach-bubble .coach-h + p { margin-top: 2px; }
 
   /* 継続カレンダー（ログタブ上部） */
   .cal { margin: 4px 0 30px; }
@@ -248,24 +256,6 @@
   .ib-legend { display: flex; gap: 16px; margin-top: 6px; font-family: var(--sans-jp); font-size: 11px; color: var(--ink-soft); }
   .ib-sw { display: inline-block; width: 14px; height: 3px; vertical-align: 3px; margin-right: 5px; }
 
-  /* ③ 実行モード */
-  .wo-btn { display: block; width: 100%; margin: 4px 0 22px; padding: 14px; border: 0; border-radius: 12px; background: var(--oxblood); color: var(--paper); font-family: var(--sans-jp); font-size: 15px; font-weight: 700; letter-spacing: .08em; cursor: pointer; }
-  .wo-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: var(--paper); overflow-y: auto; padding: 18px 18px calc(40px + env(safe-area-inset-bottom)); }
-  .wo-overlay.show { display: block; }
-  .wo-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 6px; }
-  .wo-head .wt { font-family: var(--serif-jp); font-weight: 600; font-size: 20px; }
-  .wo-head .wx { border: 0; background: none; font-size: 26px; line-height: 1; color: var(--ink-soft); cursor: pointer; padding: 0 4px; }
-  .wo-prog { font-family: var(--sans-jp); font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; }
-  .wo-ex { margin-top: 14px; }
-  .wo-ex-name { font-family: var(--serif-jp); font-weight: 600; font-size: 15px; border-bottom: 1px solid var(--rule); padding-bottom: 5px; margin-bottom: 2px; }
-  .wo-item { display: flex; align-items: center; gap: 11px; padding: 9px 2px; border-bottom: 1px solid var(--rule); cursor: pointer; }
-  .wo-box { flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--rule-strong); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--paper); }
-  .wo-item.done .wo-box { background: var(--oxblood); border-color: var(--oxblood); }
-  .wo-lbl { font-family: var(--sans-jp); font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--ink-soft); width: 30px; }
-  .wo-set { font-size: 15px; }
-  .wo-item.done .wo-set { color: var(--ink-faint); text-decoration: line-through; }
-  .wo-set .warm { color: var(--ink-faint); }
-
   /* 下タブバー（固定） */
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: var(--paper); border-top: 1px solid var(--rule-strong); padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
   .tabbar button { flex: 1; border: 0; background: none; color: var(--ink-faint); cursor: pointer; padding: 9px 0 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: var(--sans-jp); }
@@ -291,8 +281,6 @@
   <section id="tab-log" class="panel"><div class="sheet" id="log-sheet"></div></section>
 </main>
 
-<div class="wo-overlay" id="wo-overlay"></div>
-
 <nav class="tabbar">
   <button data-tab="program" onclick="showTab('program')" aria-label="プログラム">
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="7" x2="18" y2="7"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="17" x2="13" y2="17"/></svg>
@@ -314,9 +302,18 @@
 
   /* 専属トレーナー感が出るように、kaikaiくんの顔だけを丸く表示する。 */
   var COACH_AVATAR = '<img src="coach-kaikai.png" width="42" height="42" alt="" aria-hidden="true">';
+  /* トレーナーのコメントは3つの書き方を許す（後方互換）：
+       ① 文字列            … 従来どおり1段落
+       ② 配列              … 各要素が1段落（やる意味を分けて読みやすく）
+       ③ 配列の中の {h,p}  … h＝小見出し（「なぜ」等）、p＝本文 */
   function coachBlock(text) {
+    var items = Array.isArray(text) ? text : [text];
+    var body = items.map(function (it) {
+      if (it && typeof it === 'object') return '<p class="coach-h">' + it.h + '</p><p>' + it.p + '</p>';
+      return '<p>' + it + '</p>';
+    }).join('');
     return '<div class="coach"><div class="coach-av">' + COACH_AVATAR + '</div>'
-      + '<div class="coach-bubble"><div class="coach-name">kaikaiくん</div><p>' + text + '</p></div></div>';
+      + '<div class="coach-bubble"><div class="coach-name">kaikaiくん</div>' + body + '</div></div>';
   }
 
   function setRow(s) {
@@ -370,7 +367,6 @@
   function buildNext() {
     var cur = D.sessions[D.currentKey];
     var h = masthead(cur) + (cur.coachIntro ? coachBlock(cur.coachIntro) : '')
-      + '<button class="wo-btn" onclick="startWorkout()">▶　実行モードを始める</button>'
       + sessionInner(cur);
     var last = D.log && D.log[0];
     if (last) {
@@ -390,7 +386,7 @@
     var m = D.meta;
     var pct = Math.round(m.sessionsDone / m.sessionsTotal * 100);
     var h = '<header class="masthead"><div class="masthead-top">'
-      + '<span class="kicker">Program</span><span class="date">' + m.cycleNote + '</span></div>'
+      + '<span class="kicker">Program</span><span class="date">' + m.phaseLabel + '</span></div>'
       + '<h1 class="title sm">プログラム</h1><div class="title-jp">' + m.splitName + '</div>'
       + '<p class="lede">' + m.overview + '</p></header>';
 
@@ -401,7 +397,9 @@
     }
 
     h += '<div class="prog-week"><div class="pw-row"><span class="kicker">進捗</span>'
-      + '<span class="pw-week">' + m.cycleNote + ' ・ ' + m.sessionsDone + ' / ' + m.sessionsTotal + ' 回</span></div>'
+      + '<span class="pw-phase">' + m.phaseLabel + '</span></div>'
+      + '<div class="pw-row2"><span class="pw-prog-lbl">全12週プログラム</span>'
+      + '<span class="pw-count"><b>' + m.sessionsDone + '</b> / ' + m.sessionsTotal + ' 回</span></div>'
       + '<div class="pw-bar"><div class="pw-fill" style="width:' + pct + '%"></div></div>'
       + '<p class="pw-note">' + m.phaseNote + '</p></div>';
 
@@ -642,57 +640,6 @@
     document.querySelectorAll('.rot-body.open').forEach(function (x) { x.classList.remove('open'); });
     document.querySelectorAll('.rot-h.open').forEach(function (x) { x.classList.remove('open'); });
     if (!open) { b.classList.add('open'); document.getElementById('rh-' + k).classList.add('open'); }
-  }
-
-  /* ③ 実行モード（セットのチェック＋休憩タイマー） */
-  var WO = { items: [] };
-
-  function startWorkout() {
-    var cur = D.sessions[D.currentKey];
-    WO.items = [];
-    var groups = [];
-    cur.exercises.forEach(function (ex) {
-      if (ex.subgroups) ex.subgroups.forEach(function (sg) { groups.push({ name: ex.name + '（' + sg.subhead.replace('▶ ', '') + '）', sets: sg.sets }); });
-      else if (ex.sets) groups.push({ name: ex.name, sets: ex.sets });
-    });
-    var h = '<div class="wo-head"><span class="wt">' + cur.name + '　実行中</span>'
-      + '<button class="wx" onclick="closeWorkout()" aria-label="閉じる">×</button></div>'
-      + '<div class="wo-prog" id="wo-prog"></div>';
-    groups.forEach(function (g) {
-      h += '<div class="wo-ex"><div class="wo-ex-name">' + g.name + '</div>';
-      g.sets.forEach(function (s) {
-        var idx = WO.items.length;
-        WO.items.push(false);
-        var txt = (s.weight ? s.weight + ' × ' : '') + s.reps;
-        h += '<div class="wo-item" id="wo-i-' + idx + '" onclick="woToggle(' + idx + ')">'
-          + '<span class="wo-box"></span>'
-          + '<span class="wo-lbl' + (s.warm ? ' warm' : '') + '">' + s.label + '</span>'
-          + '<span class="wo-set' + (s.warm ? ' warm' : '') + '">' + txt + '</span></div>';
-      });
-      h += '</div>';
-    });
-    var ov = document.getElementById('wo-overlay');
-    ov.innerHTML = h;
-    ov.classList.add('show');
-    woUpdateProg();
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeWorkout() {
-    document.getElementById('wo-overlay').classList.remove('show');
-    document.body.style.overflow = '';
-  }
-
-  function woToggle(idx) {
-    WO.items[idx] = !WO.items[idx];
-    document.getElementById('wo-i-' + idx).classList.toggle('done', WO.items[idx]);
-    woUpdateProg();
-  }
-
-  function woUpdateProg() {
-    var done = WO.items.filter(function (x) { return x; }).length;
-    var el = document.getElementById('wo-prog');
-    if (el) el.textContent = done + ' / ' + WO.items.length + ' セット完了' + (done === WO.items.length && done > 0 ? '　— お疲れさま！' : '');
   }
 
   /* 起動 */
