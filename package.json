@@ -9,7 +9,9 @@
     "gen-sw": "node gen-sw.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "node check-inbody.cjs",
+    "release": "node check-inbody.cjs && node build-deploy.cjs"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

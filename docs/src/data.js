@@ -406,6 +406,7 @@ window.KINTORE_DATA = {
     { date: "2026-01-27", weight: 76.0, muscle: 36.1, fat: 16.7 },
     { date: "2026-02-27", weight: 78.5, muscle: 37.4, fat: 17.3 },
     { date: "2026-05-05", weight: 79.8, muscle: 38.8, fat: 15.3 },
+    { date: "2026-06-04", weight: 81.3, muscle: 37.2, fat: 19.9 },
     { date: "2026-06-30", weight: 82.3, muscle: 38.5, fat: 18.9 }
   ]
 };
