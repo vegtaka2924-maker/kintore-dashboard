@@ -22,7 +22,7 @@ window.KINTORE_DATA = {
   meta: {
     programName: "筋肥大プログラム",
     splitName: "4分割（Upper/Lower × A/B）",
-    sessionsDone: 6,     // ★この12週プログラムで完了した回数（トレ報告のたびに +1）
+    sessionsDone: 7,     // ★この12週プログラムで完了した回数（トレ報告のたびに +1）
     sessionsTotal: 36,   // 週3回 × 12週間 ＝ 全36回
     // 進捗表示はこの「○ / 36回」を主役にする。週(3回)とローテ(4分割=4回)は割り切れず
     // 混乱の元なので前面には出さない（「○周目」表記は廃止）。フェーズだけ小さく添える。
@@ -40,7 +40,7 @@ window.KINTORE_DATA = {
 
   /* ローテーションの順番と、次にやるセッション。トレ後は currentKey を次へ進める。 */
   rotation: ["upperA", "lowerA", "upperB", "lowerB"],
-  currentKey: "upperB",
+  currentKey: "lowerB",
 
   sessions: {
 
@@ -189,26 +189,26 @@ window.KINTORE_DATA = {
       rule: "全セットで上限回数を達成したら、次回 +2.5〜5kg。",
       exercises: [
         {
-          no: "01", name: "マシンショルダープレス", tag: "肩・メイン", last: "54kg × 12・10・7",
+          no: "01", name: "アイソラテラルショルダープレス", tag: "肩・メイン", last: "追加35kg/side × 8（合計79kg相当）",
           sets: [
-            { label: "W1", warm: true, weight: "20〜27kg", reps: "12回" },
-            { label: "W2", warm: true, weight: "41kg", reps: "5回" },
-            { label: "M1", weight: "54kg", reps: "8〜12回", rest: "rest 2–3 min" },
-            { label: "M2", weight: "54kg", reps: "8〜12回", rest: "rest 2–3 min" },
-            { label: "M3", weight: "54kg", reps: "AMRAP ★", accent: true, rest: "rest 2–3 min" }
+            { label: "W1", warm: true, weight: "追加0kg/side", reps: "12回" },
+            { label: "W2", warm: true, weight: "追加20kg/side", reps: "5回" },
+            { label: "M1", weight: "追加30kg/side", reps: "10〜12回", rest: "rest 2–3 min" },
+            { label: "M2", weight: "追加35kg/side", reps: "8〜10回", rest: "rest 2–3 min" },
+            { label: "M3", weight: "追加35kg/side", reps: "AMRAP ★", accent: true, rest: "rest 2–3 min" }
           ],
-          why: "肩の「丸み」を作る主力。肩は小さめの筋肉なので8〜12回の中回数が効きやすい。M3だけ限界（AMRAP）で伸びを測る。",
-          tip: "肩甲骨を下げてから押す。肩が耳に近づくと三角筋でなく僧帽筋に逃げる。"
+          why: "肩の「丸み」を作る主力。今回、通常のショルダープレスよりアイソラテラル機の方が体に合い、肩に乗る感覚が強かったので主役種目として採用。左右が独立しているため、肩の軌道を合わせやすく三角筋に集中しやすい。",
+          tip: "記録は追加重量/sideで統一（マシン本体は片側4.5kg）。追加35kg/sideは合計79kg相当で、前回の両側合計54kgから大きく前進。肩甲骨を下げ、肘を少し前に置いて押す。追加35kgでまず9〜10回を狙い、肩に乗らず僧帽筋へ逃げる日は30kgへ戻してよい。"
         },
         {
           no: "02", name: "ケーブルサイドレイズ", tag: "肩横・補助",
           sets: [
-            { label: "M1", weight: "7〜9kg", reps: "15〜20回", rest: "rest 90 sec" },
-            { label: "M2", weight: "7〜9kg", reps: "15〜20回", rest: "rest 90 sec" },
-            { label: "M3", weight: "7〜9kg", reps: "DROP SET ★ 限界→重量↓そのまま続ける", accent: true }
+            { label: "M1", weight: "6.25kg", reps: "12〜15回", rest: "rest 90 sec" },
+            { label: "M2", weight: "6.25kg", reps: "12〜15回", rest: "rest 90 sec" },
+            { label: "M3", weight: "6.25kg", reps: "丁寧に限界まで ★", accent: true }
           ],
-          why: "肩の「横の張り出し」を作る種目。サイドレイズは軽い重量でも効くので、15〜20回の高回数＋最後はドロップセットで効かせ切る。重量より効かせることが大事。",
-          tip: "肘を少し曲げ、小指側から上げる意識。前腕でなく肘を主役にすると三角筋に入る。"
+          why: "肩の「横の張り出し」を作る種目。ケーブルはジムや滑車で重量感が大きく変わるので、前ジムの9kgとは単純比較しない。今のマシンでは6.25kgで脇を開いたまま効かせることを優先する。",
+          tip: "脇が閉じるなら重さに負けているサイン。肘を外へ遠くに開き、肩をすくめず、上げ切るより肩横で止める。重量アップよりフォーム固定を優先。"
         },
         {
           no: "03 / 04", name: "スーパーセット｜腕", tag: "二頭 + 三頭",
@@ -218,10 +218,10 @@ window.KINTORE_DATA = {
           },
           sets: [
             { label: "カール", weight: "30kg", reps: "8〜12回 ・ M3は AMRAP ★", accent: true, rest: "rest 2–3 min" },
-            { label: "伸ばし", weight: "20kg", reps: "8〜12回 ・ M3は AMRAP ★", accent: true }
+            { label: "伸ばし", weight: "20kg", reps: "肘痛なしで8〜12回 ・ M3は AMRAP ★", accent: true }
           ],
           why: "二頭（引く）と三頭（押す）は互いに干渉しないので、休まず交互に行っても質が落ちず時短になる。腕の太さは三頭筋が鍵なので、三頭にもしっかり1種目あてる。",
-          tip: "カール：肘を体の横に固定、前腕だけ動かす。ライングエクステンション：肘を頭の上に固定したまま前腕だけ伸ばす。重量より肘の固定優先。"
+          tip: "カール：肘を体の横に固定、前腕だけ動かす。ライングエクステンション：目ではなく額より少し上へ下ろす。肘痛が消えた位置を最優先し、重量より痛みゼロで伸ばす。"
         },
         {
           no: "05", name: "ペックデック ＋ ハイロー", tag: "必須 × 2",
@@ -231,10 +231,10 @@ window.KINTORE_DATA = {
               sets: [
                 { label: "W1", warm: true, weight: "23kg", reps: "12回" },
                 { label: "W2", warm: true, weight: "41kg", reps: "5回" },
-                { label: "M1–2", weight: "54kg", reps: "12〜15回", rest: "rest 90 sec" },
-                { label: "M3", weight: "54kg", reps: "AMRAP ★", accent: true, rest: "rest 90 sec" }
+                { label: "M1", weight: "61kg", reps: "12回", rest: "rest 90 sec" },
+                { label: "M2–3", weight: "68kg", reps: "10〜12回", rest: "rest 90 sec" }
               ],
-              tip: "肘を少し曲げたまま固定。腕でなく「胸で閉じる」意識。最大収縮で一瞬止める。"
+              tip: "肘を少し曲げたまま固定。腕でなく「胸で閉じる」意識。68kgで収縮感が強く出ているので、肩前側に痛みがない範囲で寄せ切り、2セットとも12回を狙う。"
             },
             {
               subhead: "▶ アイソラテラルハイロー（後部三角筋）",
@@ -315,11 +315,21 @@ window.KINTORE_DATA = {
     { lift: "スクワット",       start: 75, current: 80, unit: "kg" },
     { lift: "RDL",             start: 70, current: 90, unit: "kg" },
     { lift: "ベンチプレス",     start: 70, current: 75, unit: "kg" },
-    { lift: "ショルダープレス", start: 54, current: 54, unit: "kg" }
+    { lift: "ショルダープレス系", start: 54, current: 79, unit: "kg相当" }
   ],
 
   /* これまでのトレーニング記録（新しい順）。トレ報告のたびに先頭へ1行追加する。 */
   log: [
+    {
+      date: "2026-07-02", sessionKey: "upperB",
+      highlights: "アイソラテラルショルダー追加35kg/side×8（合計79kg相当）／ペックフライ68×12・10／三頭は下ろす位置調整で肘痛が軽減",
+      detail: "アイソラテラルショルダープレス（本体片側4.5kg＋追加重量/side）W 0×12・20×5／M 25×12・30×12・35×8（合計79kg相当。前回のマシンショルダー54kgは両側合計）／ケーブルサイドレイズ 6.25kg×12・12（効くが重くなると脇が閉じる）／ペックフライ 61kg×12・68kg×12・68kg×10（収縮感が強い）／ライングエクステンション 20kg×11・7（額より少し上に下ろす意識で肘痛が途中から軽減）／EZバーカール 30kg×13・10",
+      coach: [
+        "<b>目標</b>は肩・腕・胸の補強。今日はまず、通常のショルダープレスより<b>アイソラテラル機が体に合う</b>と分かったのが大収穫！追加35kg/sideは本体込みで<b>合計79kg相当</b>。前回の54kg（両側合計）から見てもかなり大きな前進で、肩にちゃんと乗っている感覚もある。これは次から主役種目として育ててOKだよ。",
+        { h: "今日の一番の意味", p: "重量更新以上に大きいのは、肩に合う軌道と、三頭で肘が痛くなりにくい下ろし位置を見つけたこと。ライングエクステンションは目ではなく<b>額より少し上</b>へ下ろす意識で続けよう。痛みゼロで積めるフォームが、長く太くする一番の近道だ。" },
+        { h: "課題と次回", p: "サイドレイズは6.25kgでOK。前ジムの9kgとは滑車や重さの出方が違うので比較しなくていい。脇が閉じるなら重量ではなくフォーム優先。次回Upper-Bはショルダー追加35kg/sideで9〜10回、ペックは68kgで12・12を狙おう。三頭は20kg継続、肘痛なしが合格ライン！" }
+      ]
+    },
     {
       date: "2026-06-30", sessionKey: "lowerA",
       highlights: "スクワット 80×8・8・8（まだ余裕）／RDL 自己判断で80へ→80×10／腰（脊柱起立筋）が慣れてきた",
@@ -387,7 +397,8 @@ window.KINTORE_DATA = {
     { date: "2026-06-07", part: "L" }, { date: "2026-06-09", part: "U" }, { date: "2026-06-13", part: "U" },
     { date: "2026-06-15", part: "L" }, { date: "2026-06-18", part: "U" }, { date: "2026-06-19", part: "L" },
     { date: "2026-06-22", part: "U" }, { date: "2026-06-24", part: "L" },
-    { date: "2026-06-28", part: "U" }, { date: "2026-06-30", part: "L" }
+    { date: "2026-06-28", part: "U" }, { date: "2026-06-30", part: "L" },
+    { date: "2026-07-02", part: "U" }
   ],
 
   /* 自己ベスト（PRボード）。主要種目の最高記録。更新したら値と date を直し、新記録は isNew:true に。 */
@@ -395,7 +406,7 @@ window.KINTORE_DATA = {
     { lift: "ベンチプレス",     weight: "75", unit: "kg", reps: "× 9（AMRAP）", date: "2026-06-28", isNew: true },
     { lift: "RDL",             weight: "90", unit: "kg", reps: "× 10",        date: "2026-06-24" },
     { lift: "スクワット",       weight: "85", unit: "kg", reps: "× 2",         date: "2026-06-15" },
-    { lift: "ショルダープレス", weight: "54", unit: "kg", reps: "× 12",        date: "2026-06-22" },
+    { lift: "ショルダープレス系", weight: "79", unit: "kg相当", reps: "× 8（追加35kg/side）", date: "2026-07-02", isNew: true },
     { lift: "懸垂（自重）",     weight: "8",  unit: "回", reps: "連続",         date: "2026-06-18" }
   ],
 
