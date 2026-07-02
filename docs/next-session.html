@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <link rel="manifest" href="card.webmanifest">
-<meta name="theme-color" content="#7C2A22">
+<meta name="theme-color" content="#F3EDE2">
 <link rel="apple-touch-icon" href="icon-card-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="筋トレ">
@@ -24,310 +24,521 @@
     }).catch(function () {});
   }
 </script>
-<title>筋トレ｜プログラム・次回・ログ</title>
+<title>筋トレ｜プログラム・今日・記録</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Noto+Serif+JP:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 
 <style>
+  /* =========================================================================
+     デザイン方針（2026-07 モダンカード版）
+     ・配色は前の紙面から継承：生成り×オックスブラッド（温かく落ち着いた大人の色）。
+     ・レイアウトは新聞ではなくモダンなカードUI（角丸・やわらかい影・余白）。
+     ・絵文字は使わない。質はタイポグラフィと余白で出す。
+     ・ジムで使う道具として：数字は大きく、タップ範囲は広く。
+     ========================================================================= */
   :root {
-    --paper: #F4EFE6; --ink: #211C17; --ink-soft: #6E655A; --ink-faint: #A89E90;
-    --oxblood: #7C2A22; --oxblood-deep: #5E1F19; --rule: #DCD4C6; --rule-strong: #C3B9A8;
-    --serif-latin: "Playfair Display", "Noto Serif JP", serif;
-    --serif-jp: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
-    --sans-jp: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    --bg: #F3EDE2;             /* 生成りの背景 */
+    --card: #FDFBF6;           /* 温かみのある白カード */
+    --card2: #F5EFE3;          /* カード内の一段沈んだ面 */
+    --border: #E6DDCB;
+    --border-hi: #D3C6AD;
+    --ink: #2B241B;            /* 温かい黒 */
+    --muted: #7A7060;
+    --faint: #A99D8A;
+    --ox: #7C2A22;             /* オックスブラッド＝筋肉・達成・アクション */
+    --ox-deep: #5E1F19;
+    --ox-dim: rgba(124, 42, 34, .08);
+    --sand: #B08A45;           /* 体脂肪・注意（落ち着いた琥珀） */
+    --radius: 18px;
+    --shadow: 0 1px 2px rgba(74, 58, 38, .05), 0 6px 20px rgba(74, 58, 38, .08);
+    --sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    --serif: "Playfair Display", Georgia, serif;   /* 英字・飾り数字用 */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
   body {
-    background: var(--paper); color: var(--ink); font-family: var(--sans-jp);
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
     font-size: 15px; line-height: 1.7; font-feature-settings: "tnum" 1;
     -webkit-font-smoothing: antialiased;
-    padding-bottom: calc(78px + env(safe-area-inset-bottom));
+    padding-bottom: calc(86px + env(safe-area-inset-bottom));
   }
   main { touch-action: pan-y; overscroll-behavior-x: contain; position: relative; overflow-x: hidden; }
   .panel { display: none; width: 100%; }
   .panel.show { display: block; }
   .panel.slide-layer { display: block; position: absolute; inset: 0 auto auto 0; width: 100%; backface-visibility: hidden; will-change: transform, opacity; }
   .panel.slide-anim { transition: transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s ease; }
-  .sheet { max-width: 600px; margin: 0 auto; padding: 26px 22px 28px; }
-  .kicker { font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--oxblood); }
+  .sheet-wrap { max-width: 620px; margin: 0 auto; padding: 14px 14px 30px; }
 
-  /* 題字 */
-  .masthead { margin-bottom: 26px; }
-  .masthead-top { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 9px; border-bottom: 2px solid var(--ink); }
-  .masthead-top .date { font-family: var(--serif-latin); font-size: 13px; font-style: italic; color: var(--ink-soft); }
-  .title { font-family: var(--serif-latin); font-weight: 700; font-size: 54px; line-height: 1.02; letter-spacing: -.01em; margin: 14px 0 2px; }
-  .title.sm { font-size: 30px; line-height: 1.12; }
-  .title-jp { font-family: var(--serif-jp); font-weight: 600; font-size: 19px; letter-spacing: .04em; color: var(--ink); }
-  .lede { font-family: var(--serif-jp); font-size: 13.5px; color: var(--ink-soft); margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--rule); }
-  .lede .min { color: var(--oxblood); font-weight: 600; }
+  .kicker { font-family: var(--serif); font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--ox); }
+  .kicker .jp { font-family: var(--sans); font-weight: 700; letter-spacing: .08em; color: var(--muted); text-transform: none; }
 
-  /* 仕上がり予告 */
-  .payoff { margin: 22px 0 6px; }
-  .payoff .k { display: block; margin-bottom: 10px; }
-  .payoff-item { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--rule); }
-  .po-target { font-family: var(--serif-jp); font-weight: 600; font-size: 17px; color: var(--oxblood); white-space: nowrap; }
-  .po-text { font-size: 13.5px; line-height: 1.65; color: var(--ink); }
+  /* ---------- 上部ヘッダー（今週の状況つき） ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(243, 237, 226, .88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar .in { max-width: 620px; margin: 0 auto; height: 52px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: baseline; gap: 8px; }
+  .brand .t { font-family: var(--serif); font-weight: 700; font-size: 18px; letter-spacing: .02em; color: var(--ox); }
+  .brand small { font-weight: 700; font-size: 11px; color: var(--muted); }
+  .weekchip { display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--muted); }
+  .weekchip .dots { display: inline-flex; gap: 4px; }
+  .weekchip .d { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ox); box-sizing: border-box; }
+  .weekchip .d.on { background: var(--ox); }
+  .weekchip b { color: var(--ox); font-weight: 700; }
 
-  /* 進行ルール */
-  .rulenote { margin: 20px 0 6px; padding-left: 14px; border-left: 2px solid var(--oxblood); }
-  .rulenote .k { display: block; margin-bottom: 2px; }
-  .rulenote p { font-size: 13.5px; color: var(--ink); }
-  .rulenote strong { font-weight: 700; }
-
-  /* 種目 */
-  .exercise { padding: 22px 0 18px; border-top: 1px solid var(--rule); }
-  .exercise:first-of-type { border-top: 2px solid var(--ink); }
-  .ex-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
-  .ex-no { font-family: var(--serif-latin); font-weight: 700; font-size: 40px; line-height: .9; color: var(--oxblood); flex-shrink: 0; min-width: 52px; }
-  .ex-titles { flex: 1; padding-top: 2px; }
-  .ex-name { font-family: var(--serif-jp); font-weight: 600; font-size: 20px; line-height: 1.3; letter-spacing: .01em; }
-  .ex-tag { display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
-  .ex-tag::before { content: "— "; color: var(--rule-strong); }
-  .sets { margin-left: 66px; }
-  @media (max-width: 360px) { .sets { margin-left: 0; } }
-  .set { display: grid; grid-template-columns: 56px 1fr auto; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
-  .set:last-child { border-bottom: none; }
-  .set-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--ink-soft); }
-  .set-label.warm { color: var(--ink-faint); }
-  .set-detail { font-size: 16px; font-weight: 500; }
-  .set-detail .x { color: var(--ink-faint); font-weight: 400; }
-  .set-detail .reps { color: var(--ink-soft); font-weight: 400; }
-  .accent { color: var(--oxblood); font-weight: 700; letter-spacing: .06em; }
-  .set-rest { font-family: var(--serif-latin); font-style: italic; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
-  .tip { margin: 12px 0 0 66px; padding-left: 13px; border-left: 1px solid var(--oxblood); font-family: var(--serif-jp); font-size: 13px; line-height: 1.75; color: var(--ink-soft); }
-  @media (max-width: 360px) { .tip { margin-left: 0; } }
-  .why { margin: 12px 0 0 66px; font-size: 12.5px; line-height: 1.75; color: var(--ink-soft); }
-  @media (max-width: 360px) { .why { margin-left: 0; } }
-  .why .lbl { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--oxblood); margin-right: 8px; }
-  .ss-flow { margin: 4px 0 14px 66px; padding: 13px 16px; border: 1px solid var(--rule-strong); }
-  @media (max-width: 360px) { .ss-flow { margin-left: 0; } }
-  .ss-flow .step { font-family: var(--serif-jp); font-weight: 600; font-size: 14.5px; }
-  .ss-flow .arrow { display: block; font-size: 11px; letter-spacing: .1em; color: var(--oxblood); margin: 3px 0; }
-  .subhead { margin: 14px 0 2px 66px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--oxblood); }
-  @media (max-width: 360px) { .subhead { margin-left: 0; } }
-  .subhead + .sets { margin-top: 4px; }
-
-  /* 奥付 */
-  .colophon { margin-top: 34px; padding-top: 16px; border-top: 2px solid var(--ink); }
-  .colophon .k { display: block; margin-bottom: 10px; }
-  .colo-hl { font-size: 14px; font-weight: 500; line-height: 1.7; }
-  .colophon .next { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-family: var(--serif-jp); font-size: 13px; color: var(--ink-soft); }
-  .colophon .next b { color: var(--oxblood); font-weight: 700; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .panel.slide-anim { transition: none; }
+  /* ---------- カード共通 ---------- */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 16px; margin-top: 14px;
   }
 
-  /* このプログラムについて */
-  .about { margin: 8px 0 4px; }
-  .about .k { display: block; margin-bottom: 8px; }
-  .about-item { padding: 10px 0; border-top: 1px solid var(--rule); }
-  .ai-h { font-family: var(--serif-jp); font-weight: 600; font-size: 14px; color: var(--oxblood); display: block; margin-bottom: 2px; }
-  .ai-p { font-size: 13px; line-height: 1.7; color: var(--ink); }
+  /* ---------- ヒーロー（今日のセッション） ---------- */
+  .hero { padding: 20px 18px; }
+  .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+  .hero-name { font-family: var(--serif); font-weight: 700; font-size: clamp(38px, 11vw, 50px); line-height: 1.05; letter-spacing: -.005em; margin-top: 8px; color: var(--ox); }
+  .hero-sub { font-size: 16px; font-weight: 900; margin-top: 2px; }
+  .hero-lede { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .hero-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .chip { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; color: var(--ink);
+    background: var(--card2); border: 1px solid var(--border); border-radius: 99px; padding: 4px 12px; }
+  .chip.oxc { color: var(--ox); border-color: rgba(124,42,34,.3); background: var(--ox-dim); }
 
-  /* 今のプログラム進捗（3タブ共通） */
-  .program-progress { margin: 20px 0 26px; }
-  .pp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 14px; flex-wrap: wrap; }
-  .pp-phase { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--oxblood); text-align: right; }
-  .pp-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 12px; margin-top: 10px; flex-wrap: wrap; }
-  .pp-label { font-family: var(--serif-jp); font-size: 13.5px; color: var(--ink-soft); }
-  .pp-count { font-family: var(--serif-latin); font-size: 15px; color: var(--ink-soft); white-space: nowrap; }
-  .pp-count b { font-size: 27px; font-weight: 700; color: var(--oxblood); }
-  .pp-dots { display: flex; flex-wrap: wrap; gap: 7px 8px; margin: 12px 0 10px; }
-  .pp-week { display: inline-flex; gap: 3px; }
-  .pp-dot { width: 7px; height: 15px; border-radius: 3px; border: 1.5px solid var(--rule-strong); background: transparent; box-sizing: border-box; }
-  .pp-dot.done { border-color: var(--oxblood); background: var(--oxblood); }
-  .pp-dot.next { border-color: var(--oxblood); background: var(--paper); box-shadow: 0 0 0 2px rgba(124, 42, 34, .14); }
-  .pp-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
-  @media (max-width: 360px) {
-    .pp-row { align-items: flex-start; }
-    .pp-dots { gap: 6px 7px; }
-    .pp-dot { width: 6.5px; height: 14px; }
-  }
+  /* リング（進捗円環） */
+  .ring { position: relative; flex-shrink: 0; }
+  .ring svg { display: block; transform: rotate(-90deg); }
+  .ring .tr { stroke: #E9E0CE; }
+  .ring .pr { stroke: var(--ox); stroke-linecap: round; }
+  .ring .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .c b { font-family: var(--serif); font-weight: 700; font-size: 18px; line-height: 1; color: var(--ink); }
+  .ring .c small { font-size: 9px; color: var(--muted); margin-top: 2px; }
 
-  /* Programページの現在地。36回の細かい進捗とは別に、全体の地図として読む。 */
-  .program-map { margin: 8px 0 30px; padding: 16px 0 6px; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule); }
-  .pm-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-  .pm-sub { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--ink-soft); text-align: right; }
-  .pm-now { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
-  .pm-big { font-family: var(--serif-latin); font-size: 44px; line-height: 1; font-weight: 700; color: var(--oxblood); min-width: 72px; }
-  .pm-big small { font-size: 16px; color: var(--ink-soft); margin-left: 2px; }
-  .pm-copy { font-family: var(--serif-jp); font-size: 14px; line-height: 1.75; color: var(--ink); }
-  .pm-copy b { color: var(--oxblood); font-weight: 700; }
-  .pm-track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
-  .pm-phase { min-height: 74px; padding-top: 8px; border-top: 4px solid var(--rule-strong); }
-  .pm-phase.done { border-color: var(--ink); }
-  .pm-phase.now { border-color: var(--oxblood); }
-  .pm-phase .num { font-family: var(--serif-latin); font-weight: 700; font-size: 18px; color: var(--ink); }
-  .pm-phase.now .num { color: var(--oxblood); }
-  .pm-phase .name { display: block; font-family: var(--serif-jp); font-size: 12.5px; font-weight: 600; line-height: 1.45; margin-top: 2px; }
-  .pm-phase .range { display: block; font-size: 10.5px; color: var(--ink-soft); margin-top: 3px; }
-  .pm-next { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; padding-top: 13px; border-top: 1px solid var(--rule); }
-  .pm-next-item .k { display: block; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--oxblood); margin-bottom: 2px; }
-  .pm-next-item .v { font-size: 13px; line-height: 1.65; color: var(--ink); }
-  .pm-rotation { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
-  .pm-step { min-height: 54px; border: 1px solid var(--rule); border-radius: 4px; padding: 7px 6px; color: var(--ink-soft); }
-  .pm-step.now { border-color: var(--oxblood); color: var(--ink); box-shadow: inset 0 2px 0 var(--oxblood); }
-  .pm-step .ord { display: block; font-family: var(--serif-latin); font-size: 11px; color: var(--ink-faint); }
-  .pm-step .name { display: block; font-family: var(--serif-jp); font-size: 12px; font-weight: 600; line-height: 1.35; margin-top: 2px; }
-  @media (max-width: 420px) {
-    .pm-next { grid-template-columns: 1fr; }
-    .pm-rotation { grid-template-columns: repeat(2, 1fr); }
-  }
+  /* 仕上がり予告（折りたたみ） */
+  .payoff { margin-top: 14px; border-top: 1px solid var(--border); }
+  .payoff summary { list-style: none; cursor: pointer; padding: 10px 0 2px; display: flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 700; color: var(--muted); }
+  .payoff summary::-webkit-details-marker { display: none; }
+  .payoff summary .chev { color: var(--ox); font-size: 10px; transition: transform .25s; }
+  .payoff[open] summary .chev { transform: rotate(180deg); }
+  .payoff-item { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 8px 0; align-items: baseline; }
+  .po-target { font-weight: 900; font-size: 14px; color: var(--ox); white-space: nowrap; }
+  .po-text { font-size: 12.5px; color: var(--muted); line-height: 1.65; }
 
-  /* ローテーション＝アコーディオン */
-  .rot-list { margin: 6px 0 26px; border-top: 2px solid var(--ink); }
-  .rot-h { width: 100%; display: flex; align-items: center; gap: 8px; border: 0; border-bottom: 1px solid var(--rule); background: none; cursor: pointer; padding: 15px 2px; text-align: left; color: var(--ink); }
-  .rot-h .rn { flex: 1; font-family: var(--serif-jp); font-weight: 600; font-size: 18px; }
-  .rot-h .rj { font-family: var(--sans-jp); font-weight: 400; font-size: 12px; color: var(--ink-soft); margin-left: 8px; }
-  .rot-h .rmark { font-size: 10px; font-weight: 700; letter-spacing: .12em; color: var(--paper); background: var(--oxblood); padding: 2px 8px; border-radius: 4px; }
-  .rot-h .chev { color: var(--oxblood); font-size: 12px; transition: transform .3s; }
-  .rot-h.open .chev { transform: rotate(180deg); }
-  .rot-body { max-height: 0; overflow: hidden; transition: max-height .4s ease; border-bottom: 1px solid var(--rule); }
-  .rot-body.open { max-height: 8000px; }
-  .rot-body .inner { padding: 4px 2px 20px; }
-  .acc-lede { font-family: var(--serif-jp); font-size: 13px; color: var(--ink-soft); margin: 8px 0 4px; }
+  /* ---------- 今日の進捗（実行モード） ---------- */
+  .run { padding: 14px 16px; }
+  .run-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .run-head .t { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .run-head b { font-family: var(--serif); font-weight: 700; font-size: 20px; }
+  .run-head b small { font-family: var(--sans); font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .run-bar { height: 9px; border-radius: 99px; background: var(--card2); border: 1px solid var(--border); overflow: hidden; margin-top: 10px; }
+  .run-fill { height: 100%; width: 0%; border-radius: 99px; background: linear-gradient(90deg, #9A3A2E, var(--ox));
+    transition: width .35s cubic-bezier(.22,.61,.36,1); }
+  .run.complete { background: var(--ox); border-color: var(--ox-deep); }
+  .run.complete .t, .run.complete b, .run.complete b small { color: #F6E9E0; }
+  .run.complete .run-bar { background: rgba(0,0,0,.18); border-color: transparent; }
+  .run.complete .run-fill { background: #F3EDE2; }
+  .run-msg { display: none; font-size: 13px; font-weight: 700; color: #F6E9E0; margin-top: 8px; }
+  .run.complete .run-msg { display: block; }
+  .run-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .copybtn { border: 1px solid var(--ox); background: none; color: var(--ox); font-family: var(--sans);
+    font-size: 12.5px; font-weight: 700; border-radius: 99px; padding: 8px 16px; cursor: pointer; }
+  .copybtn:disabled { border-color: var(--border-hi); color: var(--faint); }
+  .copybtn:not(:disabled):active { background: var(--ox); color: #F6E9E0; }
+  .run.complete .copybtn { border-color: #F3EDE2; color: #F6E9E0; }
+  .copy-note { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .run.complete .copy-note { color: #EBD9CE; }
 
-  /* 主要種目の伸び */
-  .growth { margin-top: 8px; }
-  .growth .k { display: block; margin-bottom: 4px; }
-  .grow-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--rule); }
-  .gl { font-family: var(--serif-jp); font-size: 15px; }
-  .gv { font-size: 15px; }
-  .gv .from { color: var(--ink-faint); font-size: 13px; }
-  .gv b { font-weight: 600; }
-  .gv .up { color: var(--oxblood); font-weight: 700; font-size: 13px; margin-left: 5px; }
-
-  /* ログ＝アコーディオン */
-  .logs { border-top: 2px solid var(--ink); margin-top: 4px; }
-  .log-item { border-bottom: 1px solid var(--rule); }
-  .log-h { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border: 0; background: none; cursor: pointer; padding: 13px 2px 4px; text-align: left; color: var(--ink); }
-  .log-h .ld { font-family: var(--serif-jp); font-weight: 600; font-size: 15px; }
-  .log-h .lm { font-family: var(--serif-latin); font-style: italic; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
-  .log-h .chev { color: var(--oxblood); font-size: 11px; transition: transform .3s; display: inline-block; margin-left: 6px; }
-  .log-h.open .chev { transform: rotate(180deg); }
-  .log-sum { font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; padding: 0 2px 12px; }
-  .log-body { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
-  .log-body.open { max-height: 1600px; }
-  .log-body .inner { padding: 2px 2px 14px; }
-  .log-detail { font-size: 13px; line-height: 1.85; color: var(--ink); }
-  .log-assess { margin-top: 10px; padding-left: 12px; border-left: 2px solid var(--oxblood); font-family: var(--serif-jp); font-size: 12.5px; line-height: 1.8; color: var(--ink-soft); }
-  .log-assess b { color: var(--oxblood); font-weight: 700; margin-right: 8px; font-family: var(--sans-jp); font-size: 10px; letter-spacing: .14em; }
-
-  /* トレーナーのコメント（アバター付き吹き出し） */
-  .coach { display: flex; gap: 12px; align-items: flex-start; margin: 18px 0 8px; padding: 14px 15px; background: #EFE9DD; border-radius: 12px; }
-  .coach-av { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; overflow: hidden; background: var(--oxblood); }
+  /* ---------- コーチ（kaikaiくん）カード ---------- */
+  .coach { display: flex; gap: 12px; align-items: flex-start; }
+  .coach-av { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; overflow: hidden;
+    border: 2px solid var(--ox); background: var(--card2); }
   .coach-av img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .coach-bubble { flex: 1; }
-  .coach-name { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--oxblood); margin-bottom: 4px; }
-  .coach-bubble p { font-size: 13px; line-height: 1.8; color: var(--ink); }
-  .coach-bubble p b { color: var(--oxblood); font-weight: 700; }
-  .coach-bubble p + p { margin-top: 9px; }
-  .coach-bubble .coach-h { color: var(--oxblood); font-weight: 700; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; margin-top: 12px; }
+  .coach-bubble { flex: 1; min-width: 0; }
+  .coach-name { font-family: var(--serif); font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--ox); margin-bottom: 6px; }
+  .coach-bubble p { font-size: 13.5px; line-height: 1.85; color: var(--ink); }
+  .coach-bubble p b { color: var(--ox); font-weight: 700; }
+  .coach-bubble p + p { margin-top: 10px; }
+  .coach-bubble .coach-h { color: var(--ox); font-weight: 700; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; margin-top: 13px; }
   .coach-bubble .coach-h::before { content: "— "; }
-  .coach-bubble .coach-h + p { margin-top: 2px; }
+  .coach-bubble .coach-h + p { margin-top: 3px; }
 
-  /* 継続カレンダー（ログタブ上部） */
-  .cal { margin: 4px 0 30px; }
-  .cal .program-progress { margin-top: 10px; }
-  .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
-  .cal-nav button { border: 0; background: none; cursor: pointer; color: var(--oxblood); font-size: 22px; line-height: 1; padding: 2px 12px; }
-  .cal-nav .mlabel { font-family: var(--serif-jp); font-weight: 600; font-size: 19px; }
-  .cal-nav .mlatin { font-family: var(--serif-latin); font-style: italic; font-size: 12px; color: var(--ink-soft); margin-left: 6px; }
-  .cal-week { align-items: center; gap: 8px; margin-top: 12px; font-family: var(--sans-jp); font-size: 11px; color: var(--ink-soft); }
-  .cal-week .dots { display: inline-flex; gap: 4px; }
-  .cal-week .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--oxblood); box-sizing: border-box; }
-  .cal-week .dot.on { background: var(--oxblood); }
-  .cal-week .left { color: var(--oxblood); font-weight: 700; }
-  .cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 12px; font-family: var(--sans-jp); font-size: 10px; text-align: center; color: var(--ink-faint); }
-  .cal-dow .sun { color: #B98A82; }
-  .cal-dow .sat { color: #8AA0A6; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 5px; }
-  .cal-cell { position: relative; aspect-ratio: 1; min-height: 42px; display: flex; align-items: center; justify-content: center; font-family: var(--serif-latin); font-size: 14px; border-radius: 7px; color: var(--ink-faint); }
-  .cal-cell.went { background: #EAD7CF; color: var(--oxblood-deep); }
-  .cal-cell.today { border: 2px solid var(--oxblood); }
-  .cal-cell .part { position: absolute; top: 3px; right: 5px; font-family: var(--serif-jp); font-size: 9px; color: #9C5A50; }
-  .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-family: var(--sans-jp); font-size: 10.5px; color: var(--ink-soft); }
-  .cal-legend .sw { width: 13px; height: 13px; border-radius: 4px; display: inline-block; vertical-align: -2px; margin-right: 5px; box-sizing: border-box; }
-  .cal-stats { display: flex; gap: 22px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-family: var(--sans-jp); }
-  .cal-stats .num { font-size: 22px; font-weight: 700; color: var(--oxblood); line-height: 1.1; }
-  .cal-stats .lbl2 { font-size: 10px; color: var(--ink-soft); }
-  .cal-cell.went { cursor: pointer; }
-  .cal-cell.sel { box-shadow: inset 0 0 0 2px var(--oxblood); }
-  .cal-cell.today.sel { box-shadow: inset 0 0 0 2px var(--oxblood); }
+  /* ---------- 種目カード ---------- */
+  .ex { padding: 16px; }
+  .ex-head { display: flex; align-items: flex-start; gap: 12px; }
+  .ex-no { font-family: var(--serif); font-weight: 700; font-size: 15px; color: var(--ox);
+    background: var(--ox-dim); border: 1px solid rgba(124,42,34,.22); border-radius: 10px;
+    min-width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ex-titles { flex: 1; min-width: 0; }
+  .ex-name { font-size: 17.5px; font-weight: 900; line-height: 1.35; }
+  .ex-tag { display: inline-block; margin-top: 3px; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; color: var(--muted); }
+  .ex-last { margin-top: 10px; font-size: 12px; color: var(--muted); background: var(--card2);
+    border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; line-height: 1.6; }
+  .ex-last .lbl { font-family: var(--serif); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ox); margin-right: 7px; }
+  .ex-last b { color: var(--ink); font-weight: 700; }
+  .ex-last .beat { display: inline-block; color: var(--ox); font-weight: 700; font-size: 11px; margin-left: 6px; }
 
-  /* その日の記録（カレンダー下の詳細） */
-  .cal-detail { margin-top: 6px; }
-  .cal-det-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 12px; }
-  .cal-det-date { font-family: var(--serif-latin); font-weight: 700; font-size: 26px; color: var(--oxblood); line-height: 1; }
-  .cal-det-name { font-family: var(--serif-jp); font-weight: 600; font-size: 16px; }
-  .cal-det-hl { font-size: 13px; line-height: 1.7; color: var(--ink); margin-bottom: 4px; }
-  .cal-det-none { font-family: var(--serif-jp); font-size: 13px; color: var(--ink-soft); padding: 2px 0; }
+  /* セット行（タップで完了チェック） */
+  .sets { margin-top: 12px; }
+  .set { width: 100%; display: grid; grid-template-columns: 26px 44px 1fr auto; align-items: center; gap: 10px;
+    padding: 11px 4px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--ink);
+    font-family: var(--sans); font-size: 15.5px; text-align: left; cursor: pointer; border-radius: 10px;
+    transition: background .15s; }
+  .set:active { background: var(--card2); }
+  .s-check { width: 23px; height: 23px; border-radius: 50%; border: 2px solid var(--border-hi);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900;
+    color: transparent; transition: all .18s; flex-shrink: 0; background: #fff; }
+  .s-label { font-size: 11.5px; font-weight: 700; letter-spacing: .07em; color: var(--muted); }
+  .s-label.warm { color: var(--faint); }
+  .s-main { font-weight: 500; min-width: 0; }
+  .s-main .x { color: var(--faint); font-weight: 400; padding: 0 2px; }
+  .s-main .reps { color: var(--muted); font-weight: 400; font-size: 14px; }
+  .s-main .accent { color: var(--ox); font-weight: 800; letter-spacing: .04em; font-size: 14px; }
+  .s-w { color: var(--ink); font-weight: 800; font-size: 16px; }
+  .s-w.plate { text-decoration: underline dotted var(--faint) 1.5px; text-underline-offset: 4px; }
+  .s-rest { font-size: 11px; color: var(--faint); white-space: nowrap; font-weight: 500; }
+  .set.done .s-check { background: var(--ox); border-color: var(--ox); color: #F6E9E0; }
+  .set.done .s-main, .set.done .s-label, .set.done .s-rest { opacity: .45; }
+  .set.done { background: rgba(124,42,34,.04); }
 
-  /* ② 前回実績（種目の下に表示） */
-  .ex-last { margin: 2px 0 4px 66px; font-family: var(--sans-jp); font-size: 11.5px; color: var(--ink-soft); }
-  @media (max-width: 360px) { .ex-last { margin-left: 0; } }
-  .ex-last .lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; color: var(--oxblood); margin-right: 7px; }
-  .ex-last b { font-family: var(--serif-jp); font-weight: 600; color: var(--ink); }
+  /* 実績の記録（チェックすると現れる。回数だけでも入れておくと転記が楽） */
+  .act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin: 2px 4px 6px 36px; padding: 7px 10px; background: var(--card2);
+    border: 1px solid var(--border); border-radius: 12px; font-size: 12.5px; color: var(--muted); }
+  .act[hidden] { display: none; }
+  .act .k { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: var(--ox); }
+  .stp { display: inline-flex; align-items: center; gap: 2px; }
+  .stp button { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border-hi); background: #fff;
+    color: var(--ink); font-size: 16px; line-height: 1; cursor: pointer; font-family: var(--sans); }
+  .stp button:active { background: var(--ox); color: #fff; border-color: var(--ox); }
+  .stp b { min-width: 56px; text-align: center; font-size: 14px; font-weight: 800; color: var(--ink); }
+  .stp b.empty { color: var(--faint); font-weight: 500; }
+  .act .x2 { color: var(--faint); }
+  @media (max-width: 370px) { .act { margin-left: 0; } }
 
-  /* ① 自己ベスト（PRボード） */
-  .records { margin: 8px 0 26px; }
-  .records .k { display: block; margin-bottom: 4px; }
-  .rec-row { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 2px; border-top: 1px solid var(--rule); }
-  .rec-row:first-of-type { border-top: 2px solid var(--ink); }
-  .rec-l .rl-name { font-family: var(--serif-jp); font-weight: 600; font-size: 16px; }
-  .rec-l .rl-new { font-size: 9px; font-weight: 700; letter-spacing: .12em; color: var(--paper); background: var(--oxblood); padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: 2px; }
-  .rec-l .rl-date { font-family: var(--serif-latin); font-style: italic; font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+  /* スーパーセットの流れ */
+  .ss-flow { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--border-hi); border-radius: 14px; background: var(--card2); }
+  .ss-flow .step { font-weight: 800; font-size: 14px; }
+  .ss-flow .arrow { display: block; font-size: 11px; letter-spacing: .08em; color: var(--ox); margin: 4px 0; }
+  .subhead { margin: 14px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--ox); }
+
+  /* なぜ・コツ（折りたたみ） */
+  .ex-fold { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .fold { flex: 1; min-width: 100%; }
+  .fold summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 700; color: var(--muted); background: var(--card2);
+    border: 1px solid var(--border); border-radius: 99px; padding: 5px 13px; }
+  .fold summary::-webkit-details-marker { display: none; }
+  .fold summary .chev { font-size: 9px; color: var(--ox); transition: transform .25s; }
+  .fold[open] summary { color: var(--ink); border-color: var(--border-hi); }
+  .fold[open] summary .chev { transform: rotate(180deg); }
+  .fold .fold-body { font-size: 12.5px; line-height: 1.85; color: var(--muted); padding: 10px 4px 2px; }
+  .fold .fold-body b { color: var(--ink); }
+  .fold.tip .fold-body { border-left: 2px solid var(--ox); padding-left: 12px; color: var(--ink); opacity: .85; }
+
+  /* ---------- 前回の記録 ---------- */
+  .colophon .colo-hl { font-size: 13.5px; line-height: 1.8; margin-top: 8px; }
+  .colophon .next { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); }
+  .colophon .next b { color: var(--ox); font-weight: 700; }
+
+  /* ---------- プログラムタブ ---------- */
+  .head-plain { padding: 16px 4px 2px; }
+  .head-plain h1 { font-weight: 900; font-size: 26px; line-height: 1.2; margin-top: 6px; }
+  .head-plain .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .bigring-card { display: flex; align-items: center; gap: 18px; }
+  .bigring-copy { flex: 1; min-width: 0; }
+  .bigring-copy .ph { font-family: var(--serif); font-size: 11.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ox); }
+  .bigring-copy p { font-size: 13px; line-height: 1.8; color: var(--muted); margin-top: 5px; }
+  .bigring-copy p b { color: var(--ink); }
+
+  .pm-track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .pm-phase { min-height: 76px; padding: 10px 10px 8px; border-radius: 14px; border: 1px solid var(--border); background: var(--card2); }
+  .pm-phase.done { opacity: .7; }
+  .pm-phase.now { border-color: rgba(124,42,34,.45); background: #FBF3EC; }
+  .pm-phase .num { font-family: var(--serif); font-weight: 700; font-size: 13px; color: var(--muted); }
+  .pm-phase.now .num { color: var(--ox); }
+  .pm-phase.done .num::after { content: " ✓"; color: var(--ox); }
+  .pm-phase .name { display: block; font-size: 12.5px; font-weight: 700; line-height: 1.4; margin-top: 3px; }
+  .pm-phase .range { display: block; font-size: 10px; color: var(--faint); margin-top: 3px; }
+  .pm-next { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; padding-top: 13px; border-top: 1px solid var(--border); }
+  .pm-next-item .k { display: block; font-family: var(--serif); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ox); margin-bottom: 3px; }
+  .pm-next-item .v { font-size: 12.5px; line-height: 1.7; color: var(--muted); }
+  .pm-next-item .v b { color: var(--ink); }
+  @media (max-width: 420px) { .pm-next { grid-template-columns: 1fr; } }
+
+  /* ローテーション（アコーディオン） */
+  .rot-card { padding: 6px 16px 10px; }
+  .rot-h { width: 100%; display: flex; align-items: center; gap: 10px; border: 0; border-bottom: 1px solid var(--border);
+    background: none; cursor: pointer; padding: 15px 2px; text-align: left; color: var(--ink); font-family: var(--sans); }
+  .rot-h .ord { font-family: var(--serif); font-weight: 700; font-size: 12px; color: var(--faint); min-width: 16px; }
+  .rot-h .rn { flex: 1; font-family: var(--serif); font-weight: 700; font-size: 17px; }
+  .rot-h .rj { font-family: var(--sans); font-weight: 500; font-size: 12px; color: var(--muted); margin-left: 8px; }
+  .rot-h .rmark { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: #F6E9E0; background: var(--ox); padding: 2px 9px; border-radius: 99px; }
+  .rot-h .chev { color: var(--ox); font-size: 11px; transition: transform .3s; }
+  .rot-h.open .chev { transform: rotate(180deg); }
+  .rot-body { max-height: 0; overflow: hidden; transition: max-height .4s ease; border-bottom: 1px solid var(--border); }
+  .rot-body.open { max-height: 9000px; }
+  .rot-body .inner { padding: 4px 0 18px; }
+  .acc-lede { font-size: 12.5px; color: var(--muted); margin: 6px 0 2px; }
+  .rot-body .card, .rot-body .ex { box-shadow: none; border-color: var(--border); }
+
+  /* 主要種目の伸び（バー付き） */
+  .grow-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .grow-row:last-child { border-bottom: none; padding-bottom: 4px; }
+  .grow-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .gl { font-size: 14px; font-weight: 700; }
+  .gv { font-size: 13.5px; white-space: nowrap; }
+  .gv .from { color: var(--faint); font-size: 12px; }
+  .gv b { font-family: var(--serif); font-weight: 700; font-size: 16.5px; }
+  .gv .up { color: var(--ox); font-weight: 800; font-size: 12px; margin-left: 5px; }
+  .grow-bar { height: 6px; border-radius: 99px; background: var(--card2); border: 1px solid var(--border); overflow: hidden; margin-top: 8px; }
+  .grow-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #9A3A2E, var(--ox)); }
+
+  /* PRボード */
+  .rec-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .rec-row:last-child { border-bottom: none; padding-bottom: 4px; }
+  .rec-l .rl-name { font-size: 14.5px; font-weight: 700; }
+  .rec-l .rl-new { font-family: var(--serif); font-size: 9px; font-weight: 700; letter-spacing: .12em; color: #F6E9E0; background: var(--ox); padding: 2px 8px; border-radius: 99px; margin-left: 7px; vertical-align: 2px; }
+  .rec-l .rl-date { font-size: 10.5px; color: var(--faint); margin-top: 2px; }
+  .rec-l .rl-e1rm { font-size: 10.5px; color: var(--muted); margin-top: 1px; font-weight: 500; }
   .rec-v { text-align: right; white-space: nowrap; }
-  .rec-v .rv-num { font-family: var(--serif-latin); font-weight: 700; font-size: 23px; color: var(--oxblood); }
-  .rec-v .rv-num small { font-size: 12px; }
-  .rec-v .rv-reps { font-size: 12px; color: var(--ink-soft); }
+  .rec-v .rv-num { font-family: var(--serif); font-weight: 700; font-size: 23px; color: var(--ox); }
+  .rec-v .rv-num small { font-family: var(--sans); font-size: 11px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .rec-v .rv-reps { display: block; font-size: 11px; color: var(--muted); }
 
-  /* ④ InBody 推移 */
-  .inbody { margin: 8px 0 26px; }
-  .inbody .k { display: block; margin-bottom: 6px; }
-  .ib-legend { display: flex; gap: 16px; margin-top: 6px; font-family: var(--sans-jp); font-size: 11px; color: var(--ink-soft); }
-  .ib-sw { display: inline-block; width: 14px; height: 3px; vertical-align: 3px; margin-right: 5px; }
+  /* ---------- InBody（体組成）セクション ---------- */
+  /* C案のビフォー→アフター見出し（開始 →◯ヶ月→ 最新） */
+  .ib-head { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .ib-head .then { font-family: var(--serif); font-size: 13px; color: var(--faint); }
+  .ib-head .ar { flex: 1; height: 1px; background: var(--border-hi); position: relative; }
+  .ib-head .ar::after { content: ""; position: absolute; right: 0; top: -3px; border: 4px solid transparent; border-left-color: var(--border-hi); }
+  .ib-head .span { font-family: var(--serif); font-weight: 700; font-size: 16px; color: var(--ox); }
+  .ib-head .now { font-family: var(--serif); font-weight: 700; font-size: 14px; color: var(--ink); }
+  /* 主指標2枚 */
+  .ib-heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .ib-hc { position: relative; border: 1px solid var(--border); border-radius: 14px; padding: 12px 12px 10px; overflow: hidden; background: var(--card2); }
+  .ib-hc::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .ib-hc.m::before { background: var(--ox); }
+  .ib-hc.f::before { background: var(--sand); }
+  .ib-hc .l { font-size: 11px; color: var(--muted); font-weight: 700; }
+  .ib-hc .v { font-family: var(--serif); font-weight: 700; font-size: 34px; line-height: 1; margin-top: 3px; }
+  .ib-hc .v small { font-family: var(--sans); font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .ib-hc .bd { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 99px; padding: 2px 8px; margin-top: 6px; }
+  .ib-hc .bd.good { background: var(--ox); color: #F6E9E0; }
+  .ib-hc .bd.bad { background: #EFE3CE; color: #8A6A2A; }
+  .ib-hc .bd.flat { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+  .ib-hc .fromstart { font-size: 10.5px; color: var(--muted); margin-top: 5px; }
+  .ib-hc .fromstart b { font-weight: 700; }
+  .ib-hc .fromstart b.good { color: var(--ox); }
+  .ib-hc .fromstart b.bad { color: var(--sand); }
+  .ib-hc .fromstart b.flat { color: var(--muted); }
+  .ib-hc .spark { margin-top: 6px; height: 32px; }
+  .ib-hc .spark svg { width: 100%; height: 32px; display: block; }
+  /* サブ帯 */
+  .ib-band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 12px; }
+  .ib-band > div { background: var(--card2); padding: 9px 11px; }
+  .ib-band .k { font-size: 10px; color: var(--muted); }
+  .ib-band .v { font-family: var(--serif); font-weight: 600; font-size: 18px; margin-top: 1px; }
+  .ib-band .v small { font-family: var(--sans); font-size: 10px; color: var(--muted); margin-left: 1px; }
+  .ib-band .fs { font-size: 9.5px; color: var(--faint); margin-top: 1px; }
+  /* 点数ゲージ */
+  .ib-gauge { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .ib-gauge .gn { font-family: var(--serif); font-weight: 700; font-size: 34px; line-height: 1; color: var(--ox); }
+  .ib-gauge .gn small { font-family: var(--sans); font-size: 12px; color: var(--muted); font-weight: 500; }
+  .ib-gauge .gb { flex: 1; min-width: 0; }
+  .ib-gauge .gt { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .ib-gauge .gtrack { position: relative; height: 9px; border-radius: 99px; background: var(--card); border: 1px solid var(--border); margin-top: 10px; }
+  .ib-gauge .gtrack i { display: block; height: 100%; border-radius: 99px; background: var(--ox); }
+  .ib-gauge .gtrack b { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--border-hi); }
+  .ib-gauge .gtrack b span { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 9px; color: var(--muted); }
+  /* 推移（折りたたみ） */
+  .ib-trend { margin-top: 12px; border-top: 1px solid var(--border); }
+  .ib-trend summary { list-style: none; cursor: pointer; padding: 11px 0 2px; font-size: 12px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .ib-trend summary::-webkit-details-marker { display: none; }
+  .ib-trend summary .chev { font-size: 9px; color: var(--ox); transition: transform .25s; }
+  .ib-trend[open] summary .chev { transform: rotate(180deg); }
+  .ib-legend { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+  .ib-sw { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: 3px; margin-right: 5px; }
 
-  /* 下タブバー（固定） */
-  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: var(--paper); border-top: 1px solid var(--rule-strong); padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
-  .tabbar button { flex: 1; border: 0; background: none; color: var(--ink-faint); cursor: pointer; padding: 9px 0 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: var(--sans-jp); }
-  .tabbar button .lbl { font-size: 11px; letter-spacing: .06em; }
-  .tabbar button.active { color: var(--oxblood); box-shadow: inset 0 2px 0 var(--oxblood); }
+  /* 部位別の成長 */
+  .seg-row { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .seg-row:last-child { border-bottom: none; padding-bottom: 4px; }
+  .seg-name { font-size: 13px; font-weight: 700; }
+  .seg-bar { height: 7px; border-radius: 99px; background: var(--card2); border: 1px solid var(--border); overflow: hidden; }
+  .seg-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #9A3A2E, var(--ox)); }
+  .seg-v { font-size: 12px; white-space: nowrap; text-align: right; }
+  .seg-v .from { color: var(--faint); font-size: 11px; }
+  .seg-v b { font-weight: 800; }
+  .seg-v .up { color: var(--ox); font-weight: 800; font-size: 11px; margin-left: 4px; }
+  .seg-note { font-size: 10.5px; color: var(--faint); margin-top: 10px; line-height: 1.6; }
+
+  /* About */
+  .about-item { padding: 11px 0; border-bottom: 1px solid var(--border); }
+  .about-item:last-child { border-bottom: none; padding-bottom: 4px; }
+  .ai-h { font-weight: 700; font-size: 13.5px; color: var(--ox); display: block; margin-bottom: 2px; }
+  .ai-p { font-size: 12.5px; line-height: 1.8; color: var(--muted); }
+
+  .card > .kicker { display: block; margin-bottom: 6px; }
+
+  /* ---------- 記録タブ（カレンダー） ---------- */
+  .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .cal-nav button { border: 0; background: none; cursor: pointer; color: var(--ox); font-size: 24px; line-height: 1; padding: 2px 14px; }
+  .cal-nav .mlabel { font-weight: 900; font-size: 18px; }
+  .cal-nav .mlatin { font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--muted); margin-left: 7px; }
+  .cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 14px; font-size: 10px; text-align: center; color: var(--faint); }
+  .cal-dow .sun { color: #B96A5E; }
+  .cal-dow .sat { color: #6E88A0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 5px; }
+  .cal-cell { position: relative; aspect-ratio: 1; min-height: 42px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-weight: 600; font-size: 14px; border-radius: 10px; color: var(--faint); }
+  .cal-cell.went { background: #F0DFD4; color: var(--ox-deep); cursor: pointer; }
+  .cal-cell.today { outline: 2px solid var(--ox); outline-offset: -2px; }
+  .cal-cell.sel { background: var(--ox); color: #F6E9E0; }
+  .cal-cell.sel .part { color: #EBD9CE; }
+  .cal-cell .part { position: absolute; top: 3px; right: 5px; font-family: var(--sans); font-size: 8.5px; color: #9C5A50; }
+  .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: 10.5px; color: var(--muted); }
+  .cal-legend .sw { width: 13px; height: 13px; border-radius: 4px; display: inline-block; vertical-align: -2px; margin-right: 5px; box-sizing: border-box; }
+  .cal-stats { display: flex; gap: 26px; margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border); }
+  .cal-stats .num { font-family: var(--serif); font-size: 25px; font-weight: 700; color: var(--ox); line-height: 1.1; }
+  .cal-stats .lbl2 { font-size: 10.5px; color: var(--muted); }
+  .cal-week { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 11.5px; color: var(--muted); }
+  .cal-week .dots { display: inline-flex; gap: 4px; }
+  .cal-week .dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--ox); box-sizing: border-box; }
+  .cal-week .dot.on { background: var(--ox); }
+  .cal-week .left { color: var(--ox); font-weight: 700; }
+
+  /* その日の記録 */
+  .cal-det-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .cal-det-date { font-family: var(--serif); font-weight: 700; font-size: 27px; color: var(--ox); line-height: 1; }
+  .cal-det-name { font-weight: 700; font-size: 15.5px; }
+  .cal-det-hl { font-size: 13px; line-height: 1.75; margin-bottom: 6px; }
+  .cal-det-none { font-size: 12.5px; color: var(--muted); padding: 2px 0; }
+  .log-detail { font-size: 12.5px; line-height: 1.9; color: var(--muted); }
+  #cal-detail .coach { background: var(--card2); border-radius: 14px; padding: 12px 14px; margin-top: 12px; border: 1px solid var(--border); box-shadow: none; }
+
+  /* ---------- 下タブバー ---------- */
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; z-index: 50;
+    background: rgba(250, 246, 238, .92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
+  .tabbar button { flex: 1; border: 0; background: none; color: var(--faint); cursor: pointer;
+    padding: 9px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: var(--sans); position: relative; }
+  .tabbar button .lbl { font-size: 10.5px; letter-spacing: .05em; font-weight: 700; }
+  .tabbar button.active { color: var(--ox); }
+  .tabbar button.active::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 34px; height: 3px; border-radius: 0 0 4px 4px; background: var(--ox); }
   .tabbar svg { display: block; }
 
-  /* 折りたたみ：開いた大画面 */
+  /* ---------- レストタイマー（タブバー上に浮く） ---------- */
+  .rest { position: fixed; left: 12px; right: 12px; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 55;
+    max-width: 596px; margin: 0 auto; border-radius: 16px; overflow: hidden;
+    background: rgba(253, 251, 246, .97); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(124,42,34,.45); box-shadow: 0 10px 30px rgba(74, 58, 38, .25); }
+  .rest[hidden] { display: none; }
+  .rest-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: rgba(124,42,34,.09); transition: width .3s linear; }
+  .rest-body { position: relative; display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
+  .rest-t { font-weight: 900; font-size: 26px; line-height: 1; color: var(--ox); min-width: 84px; letter-spacing: .01em; }
+  .rest-info { flex: 1; min-width: 0; }
+  .rest-lbl { display: block; font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .rest-btns { display: flex; gap: 8px; }
+  .rest-btns button { border: 1px solid var(--border-hi); background: #fff; color: var(--ink);
+    font-family: var(--sans); font-size: 12px; font-weight: 700; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  .rest-btns button:active { transform: scale(.95); }
+  .rest.over { border-color: var(--ox); background: #FBF1E9; }
+
+  /* ---------- プレート計算シート ---------- */
+  .veil { position: fixed; inset: 0; z-index: 70; background: rgba(43, 36, 27, .35); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    display: flex; align-items: flex-end; justify-content: center; }
+  .veil[hidden] { display: none; }
+  .psheet { width: 100%; max-width: 620px; background: var(--card);
+    border: 1px solid var(--border-hi); border-bottom: none; border-radius: 24px 24px 0 0;
+    padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); animation: sheetup .25s cubic-bezier(.22,.61,.36,1);
+    box-shadow: 0 -8px 30px rgba(74,58,38,.2); }
+  @keyframes sheetup { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .psheet .grip { width: 42px; height: 4px; border-radius: 99px; background: var(--border-hi); margin: 4px auto 14px; }
+  .psheet .pw { font-family: var(--serif); font-weight: 700; font-size: 40px; line-height: 1; margin-top: 4px; color: var(--ox); }
+  .psheet .pw small { font-family: var(--sans); font-size: 15px; color: var(--muted); font-weight: 500; }
+  .plates-v { display: flex; align-items: center; gap: 3px; margin: 18px 0 6px; min-height: 64px; }
+  .plates-v .barend { width: 26px; height: 9px; border-radius: 3px; background: #8B8070; }
+  .plates-v .collar { width: 7px; height: 17px; border-radius: 2px; background: #8B8070; }
+  .plates-v .pl { border-radius: 5px; background: linear-gradient(180deg, #9A3A2E, var(--ox-deep)); color: #F6E9E0;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; width: 24px; }
+  .psheet .prow { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+  .psheet .prow b { font-weight: 800; font-size: 15.5px; }
+  .psheet .prow .warn { color: var(--sand); font-size: 12px; }
+  .psheet .pnote { font-size: 11.5px; color: var(--faint); margin-top: 10px; line-height: 1.7; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel.slide-anim, .run-fill, .rest-fill { transition: none; }
+    .psheet { animation: none; }
+  }
+
+  /* 折りたたみスマホ（閉じた縦長画面）向け微調整 */
+  @media (max-width: 370px) {
+    .set { grid-template-columns: 24px 38px 1fr auto; gap: 8px; font-size: 14.5px; }
+    .s-w { font-size: 15px; }
+    .weekchip .wk-t { display: none; }
+    .ib-grid { grid-template-columns: 1fr 1fr; }
+  }
+  /* 折りたたみスマホ（開いた大画面） */
   @media (min-width: 760px) {
-    .sheet { max-width: 720px; }
-    .payoff { display: grid; grid-template-columns: 1fr 1fr; column-gap: 30px; }
-    .payoff .k { grid-column: 1 / -1; }
-    .about { display: grid; grid-template-columns: 1fr 1fr; column-gap: 30px; }
-    .about .k { grid-column: 1 / -1; }
+    .sheet-wrap { max-width: 720px; }
   }
 </style>
 </head>
 <body>
 
+<header class="topbar"><div class="in">
+  <div class="brand"><span class="t">GAINS</span><small>筋トレ</small></div>
+  <div class="weekchip" id="weekchip"></div>
+</div></header>
+
 <main>
-  <section id="tab-program" class="panel"><div class="sheet" id="prog-sheet"></div></section>
-  <section id="tab-next" class="panel"><div class="sheet" id="next-sheet"></div></section>
-  <section id="tab-log" class="panel"><div class="sheet" id="log-sheet"></div></section>
+  <section id="tab-program" class="panel"><div class="sheet-wrap" id="prog-sheet"></div></section>
+  <section id="tab-next" class="panel"><div class="sheet-wrap" id="next-sheet"></div></section>
+  <section id="tab-log" class="panel"><div class="sheet-wrap" id="log-sheet"></div></section>
 </main>
+
+<!-- レストタイマー：セット完了で自動起動。Date.now() 基準なので画面を消してもズレない -->
+<div class="rest" id="rest" hidden>
+  <div class="rest-fill" id="restFill"></div>
+  <div class="rest-body">
+    <div class="rest-t" id="restT">0:00</div>
+    <div class="rest-info"><span class="rest-lbl" id="restLbl">休憩中</span></div>
+    <div class="rest-btns">
+      <button id="restAdd">+30秒</button>
+      <button id="restStop">終了</button>
+    </div>
+  </div>
+</div>
+
+<!-- プレート計算シート：バーベル種目の重量タップで開く -->
+<div class="veil" id="veil" hidden>
+  <div class="psheet" id="psheet">
+    <div class="grip"></div>
+    <span class="kicker">Plate Math <span class="jp">・ プレート内訳</span></span>
+    <div class="pw" id="pwTotal">75<small>kg</small></div>
+    <div class="plates-v" id="platesV"></div>
+    <div id="plateRows"></div>
+    <p class="pnote">片側ずつ同じ枚数を付けます。ジムに無い枚数のときは、近い組み合わせに読み替えてください。</p>
+  </div>
+</div>
 
 <nav class="tabbar">
   <button data-tab="program" onclick="showTab('program')" aria-label="プログラム">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="7" x2="18" y2="7"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="17" x2="13" y2="17"/></svg>
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
     <span class="lbl">プログラム</span>
   </button>
-  <button data-tab="next" onclick="showTab('next')" aria-label="メニュー">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="6" r="2.4"/><path d="M6 10 Q12 8.4 18 10 L15.5 19 Q12 19.8 8.5 19 Z"/></svg>
-    <span class="lbl">メニュー</span>
+  <button data-tab="next" onclick="showTab('next')" aria-label="今日">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M7 8v8M4.5 9.5v5M17 8v8M19.5 9.5v5M7 12h10"/></svg>
+    <span class="lbl">今日</span>
   </button>
-  <button data-tab="log" onclick="showTab('log')" aria-label="ログ">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 l3 2"/></svg>
-    <span class="lbl">ログ</span>
+  <button data-tab="log" onclick="showTab('log')" aria-label="記録">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><path d="M9 15l2 2 4-4"/></svg>
+    <span class="lbl">記録</span>
   </button>
 </nav>
 
@@ -335,266 +546,813 @@
 <script>
   var D = window.KINTORE_DATA;
 
-  /* 専属トレーナー感が出るように、kaikaiくんの顔だけを丸く表示する。 */
-  var COACH_AVATAR = '<img src="coach-kaikai.png" width="42" height="42" alt="" aria-hidden="true">';
-  /* トレーナーのコメントは3つの書き方を許す（後方互換）：
-       ① 文字列            … 従来どおり1段落
-       ② 配列              … 各要素が1段落（やる意味を分けて読みやすく）
-       ③ 配列の中の {h,p}  … h＝小見出し（「なぜ」等）、p＝本文 */
+  /* =========================================================================
+     0. 小さな道具たち
+     ========================================================================= */
+  function fmtDate(d) { var p = d.split('-'); return (+p[1]) + '/' + (+p[2]); }
+  function pad2(x) { return x < 10 ? '0' + x : '' + x; }
+  function todayStr() {
+    var n = new Date();
+    return n.getFullYear() + '-' + pad2(n.getMonth() + 1) + '-' + pad2(n.getDate());
+  }
+  var DOW = ['日', '月', '火', '水', '木', '金', '土'];
+  function clampNum(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  /* SVGの進捗リング。pct=0〜1。sizeは直径px。 */
+  function ringSVG(pct, size, stroke, centerHtml) {
+    var r = (size - stroke) / 2, c = 2 * Math.PI * r;
+    var off = c * (1 - clampNum(pct, 0, 1));
+    return '<div class="ring" style="width:' + size + 'px;height:' + size + 'px">'
+      + '<svg width="' + size + '" height="' + size + '">'
+      + '<circle class="tr" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke-width="' + stroke + '"/>'
+      + '<circle class="pr" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke-width="' + stroke
+      + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/>'
+      + '</svg><div class="c">' + centerHtml + '</div></div>';
+  }
+
+  /* =========================================================================
+     1. コーチ（kaikaiくん）吹き出し ※データ形式は従来と互換
+     ========================================================================= */
+  var COACH_AVATAR = '<img src="coach-kaikai.png" width="46" height="46" alt="" aria-hidden="true">';
   function coachBlock(text) {
     var items = Array.isArray(text) ? text : [text];
     var body = items.map(function (it) {
       if (it && typeof it === 'object') return '<p class="coach-h">' + it.h + '</p><p>' + it.p + '</p>';
       return '<p>' + it + '</p>';
     }).join('');
-    return '<div class="coach"><div class="coach-av">' + COACH_AVATAR + '</div>'
+    return '<div class="card coach"><div class="coach-av">' + COACH_AVATAR + '</div>'
       + '<div class="coach-bubble"><div class="coach-name">kaikaiくん</div>' + body + '</div></div>';
   }
 
-  function setRow(s) {
-    return '<div class="set">'
-      + '<span class="set-label' + (s.warm ? ' warm' : '') + '">' + s.label + '</span>'
-      + '<span class="set-detail">' + (s.weight ? s.weight + ' <span class="x">×</span> ' : '')
-      + '<span class="' + (s.accent ? 'accent' : 'reps') + '">' + s.reps + '</span></span>'
-      + '<span class="set-rest">' + (s.rest || '') + '</span></div>';
-  }
-  function setsBlock(sets) { return '<div class="sets">' + sets.map(setRow).join('') + '</div>'; }
+  /* =========================================================================
+     2. 実行モード（セット完了チェック＋実績の記録）
+        ・保存先は localStorage（この端末の今日ぶんだけ）。日付が変わると自動リセット。
+        ・実績は「回数」を入れるのが主目的（重量はメニュー通りのことが多い）。
+     ========================================================================= */
+  var RUN_KEY = 'ksRun:' + todayStr() + ':' + D.currentKey;
+  var RUN = { done: {}, act: {}, total: 0 };
+  /* セットの静的情報（コピー文の生成に使う）。sid → {ex, label, weightText, weightKg, upper, amrap} */
+  var SETINFO = {};
 
-  function renderExercise(ex) {
-    var h = '<article class="exercise"><div class="ex-head"><div class="ex-no">' + ex.no + '</div>'
+  function runLoad() {
+    try {
+      var del = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf('ksRun:') === 0 && k !== RUN_KEY) del.push(k);
+      }
+      del.forEach(function (k) { localStorage.removeItem(k); });
+      var raw = localStorage.getItem(RUN_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        (o.d || []).forEach(function (id) { RUN.done[id] = true; });
+        RUN.act = o.a || {};
+      }
+    } catch (e) {}
+  }
+  function runSave() {
+    try { localStorage.setItem(RUN_KEY, JSON.stringify({ d: Object.keys(RUN.done), a: RUN.act })); } catch (e) {}
+  }
+  function runCount() { return Object.keys(RUN.done).length; }
+
+  function updateRunUI() {
+    var box = document.getElementById('runBox');
+    if (!box) return;
+    var done = runCount(), total = RUN.total || 1;
+    document.getElementById('runCount').innerHTML = done + ' <small>/ ' + total + ' セット</small>';
+    document.getElementById('runFill').style.width = Math.round(done / total * 100) + '%';
+    box.classList.toggle('complete', done >= total && total > 0);
+    document.getElementById('copyBtn').disabled = done === 0;
+  }
+
+  /* セット行タップ：チェックを切り替え。付けた時は実績行を出し、レストタイマーを自動起動 */
+  function toggleSet(btn) {
+    var id = btn.getAttribute('data-sid');
+    var on = !RUN.done[id];
+    if (on) RUN.done[id] = true; else delete RUN.done[id];
+    btn.classList.toggle('done', on);
+    var act = document.getElementById('act-' + id);
+    if (act) { act.hidden = !on; if (on) renderAct(id); }
+    runSave(); updateRunUI();
+    if (on) {
+      var sec = +btn.getAttribute('data-rest') || 0;
+      if (sec > 0 && runCount() < RUN.total) startRest(sec, nextSetLabel(btn));
+      else if (runCount() >= RUN.total) { stopRest(); vibrate([120, 80, 120, 80, 240]); }
+    }
+  }
+
+  function nextSetLabel(btn) {
+    var all = document.querySelectorAll('#next-sheet .set');
+    var found = false;
+    for (var i = 0; i < all.length; i++) {
+      if (all[i] === btn) { found = true; continue; }
+      if (found && !all[i].classList.contains('done')) {
+        var ex = all[i].getAttribute('data-ex') || '';
+        var lb = all[i].querySelector('.s-label');
+        return '次は ' + ex + (lb ? ' ' + lb.textContent : '');
+      }
+    }
+    return '次の種目へ';
+  }
+
+  /* --- 実績ステッパー ------------------------------------------------------
+     重量：メニューの値が初期値（±2.5kg）。数値で読めない種目（自重・片側マシン等）は固定表示。
+     回数：初期は「未記録」。＋を1回押すとメニュー上限から始まる（誤った数字を勝手に残さないため）。 */
+  function actOf(id) { return RUN.act[id] || (RUN.act[id] = {}); }
+
+  function actAdj(id, kind, dir) {
+    var info = SETINFO[id] || {}, a = actOf(id);
+    if (kind === 'w') {
+      var base = (a.w != null) ? a.w : (info.weightKg != null ? info.weightKg : 0);
+      a.w = Math.max(0, +(base + dir * 2.5).toFixed(2));
+    } else {
+      if (a.r == null) a.r = Math.max(1, (info.upper || 8) + (dir < 0 ? -1 : 0));
+      else a.r = Math.max(1, a.r + dir);
+    }
+    runSave(); renderAct(id);
+  }
+
+  function renderAct(id) {
+    var el = document.getElementById('act-' + id);
+    if (!el) return;
+    var info = SETINFO[id] || {}, a = RUN.act[id] || {};
+    var h = '<span class="k">実績</span>';
+    if (info.weightKg != null) {
+      var w = (a.w != null) ? a.w : info.weightKg;
+      h += '<span class="stp"><button onclick="actAdj(\'' + id + '\',\'w\',-1)" aria-label="重量を減らす">−</button>'
+        + '<b>' + (+w) + 'kg</b>'
+        + '<button onclick="actAdj(\'' + id + '\',\'w\',1)" aria-label="重量を増やす">＋</button></span>';
+    } else if (info.weightText) {
+      h += '<b style="font-size:13px">' + info.weightText + '</b>';
+    }
+    h += '<span class="x2">×</span>';
+    h += '<span class="stp"><button onclick="actAdj(\'' + id + '\',\'r\',-1)" aria-label="回数を減らす">−</button>'
+      + (a.r != null ? '<b>' + a.r + '回</b>' : '<b class="empty">回数？</b>')
+      + '<button onclick="actAdj(\'' + id + '\',\'r\',1)" aria-label="回数を増やす">＋</button></span>';
+    el.innerHTML = h;
+  }
+
+  /* --- 今日の結果をコピー（あとでClaudeに貼ってトレ報告する用のテキスト） --- */
+  function buildReport() {
+    var cur = D.sessions[D.currentKey];
+    var d = new Date();
+    var lines = ['【トレ報告】' + todayStr() + '（' + DOW[d.getDay()] + '） ' + cur.name + '・' + cur.titleJp];
+    var skipped = [];
+    var order = [];  /* 種目名の登場順を保つ */
+    var byEx = {};
+    Object.keys(SETINFO).forEach(function (id) {
+      var info = SETINFO[id];
+      if (!byEx[info.ex]) { byEx[info.ex] = []; order.push(info.ex); }
+      byEx[info.ex].push(id);
+    });
+    order.forEach(function (ex) {
+      var ids = byEx[ex];
+      var done = ids.filter(function (id) { return RUN.done[id]; });
+      if (!done.length) { skipped.push(ex); return; }
+      var parts = done.map(function (id) {
+        var info = SETINFO[id], a = RUN.act[id] || {};
+        var w = (a.w != null) ? (+a.w + 'kg') : (info.weightKg != null ? info.weightKg + 'kg' : (info.weightText || ''));
+        var r = (a.r != null) ? a.r : '?';
+        return info.label + ' ' + (w ? w + '×' : '×') + r + (info.amrap ? '（AMRAP）' : '');
+      });
+      var undone = ids.filter(function (id) { return !RUN.done[id]; })
+        .map(function (id) { return SETINFO[id].label; });
+      lines.push('・' + ex + '：' + parts.join('｜') + (undone.length ? '（' + undone.join('・') + ' 未実施）' : ''));
+    });
+    if (skipped.length) lines.push('・未実施：' + skipped.join('、'));
+    lines.push('※「×?」は回数メモなし。セッションカードのチェックから自動生成。');
+    return lines.join('\n');
+  }
+
+  function copyReport() {
+    var text = buildReport();
+    var note = document.getElementById('copyNote');
+    function ok() { note.textContent = 'コピーしました。あとでClaudeに貼り付ければ、そのままトレ報告になります。'; }
+    function ng() { note.textContent = 'コピーできませんでした。もう一度お試しください。'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, function () { fallbackCopy(text) ? ok() : ng(); });
+    } else {
+      fallbackCopy(text) ? ok() : ng();
+    }
+  }
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  /* =========================================================================
+     3. レストタイマー
+     ========================================================================= */
+  var REST = { until: 0, total: 0, iv: 0, over: false };
+
+  function vibrate(pat) { try { if (navigator.vibrate) navigator.vibrate(pat); } catch (e) {} }
+
+  function beep() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!beep.ctx) beep.ctx = new AC();
+      var ctx = beep.ctx;
+      if (ctx.state === 'suspended') ctx.resume();
+      var t = ctx.currentTime;
+      [0, .22, .44].forEach(function (off, i) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = i === 2 ? 1175 : 880;
+        g.gain.setValueAtTime(.0001, t + off);
+        g.gain.exponentialRampToValueAtTime(.28, t + off + .02);
+        g.gain.exponentialRampToValueAtTime(.0001, t + off + .18);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t + off); o.stop(t + off + .2);
+      });
+    } catch (e) {}
+  }
+
+  function fmtSec(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + pad2(s % 60); }
+
+  function startRest(sec, label) {
+    REST.until = Date.now() + sec * 1000;
+    REST.total = sec; REST.over = false;
+    document.getElementById('rest').hidden = false;
+    document.getElementById('rest').classList.remove('over');
+    document.getElementById('restLbl').textContent = '休憩 ' + fmtSec(sec) + ' ・ ' + (label || '');
+    try { var AC = window.AudioContext || window.webkitAudioContext; if (AC && !beep.ctx) beep.ctx = new AC(); } catch (e) {}
+    if (REST.iv) clearInterval(REST.iv);
+    REST.iv = setInterval(restTick, 250);
+    restTick();
+  }
+
+  function restTick() {
+    if (!REST.until) return;
+    var left = (REST.until - Date.now()) / 1000;
+    if (left <= 0 && !REST.over) {
+      REST.over = true;
+      document.getElementById('rest').classList.add('over');
+      document.getElementById('restT').textContent = '0:00';
+      document.getElementById('restLbl').textContent = '休憩おわり。次のセットへ。';
+      document.getElementById('restFill').style.width = '100%';
+      vibrate([220, 110, 220]); beep();
+      setTimeout(function () { if (REST.over) stopRest(); }, 4000);
+      return;
+    }
+    if (left <= 0) return;
+    document.getElementById('restT').textContent = fmtSec(left);
+    document.getElementById('restFill').style.width = ((1 - left / REST.total) * 100).toFixed(1) + '%';
+  }
+
+  function stopRest() {
+    REST.until = 0; REST.over = false;
+    if (REST.iv) { clearInterval(REST.iv); REST.iv = 0; }
+    document.getElementById('rest').hidden = true;
+    document.getElementById('restFill').style.width = '0%';
+  }
+
+  document.getElementById('restAdd').onclick = function () {
+    if (!REST.until) return;
+    if (REST.over) { REST.over = false; document.getElementById('rest').classList.remove('over'); REST.until = Date.now(); }
+    REST.until += 30000; REST.total += 30;
+    if (!REST.iv) REST.iv = setInterval(restTick, 250);
+    restTick();
+  };
+  document.getElementById('restStop').onclick = stopRest;
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && REST.until) restTick(); });
+
+  /* =========================================================================
+     4. プレート計算（バーベル種目の重量タップで内訳を表示）
+     ========================================================================= */
+  var PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+
+  /* "75kg" "77.5kg" → 数値。"追加35kg/side" "自重" "60〜70kg" 等は対象外(null) */
+  function parseWeightKg(str) {
+    if (!str || /side|自重|アシスト|追加|〜|~|軽め/.test(str)) return null;
+    var m = String(str).match(/^(\d+(?:\.\d+)?)\s*kg$/);
+    return m ? +m[1] : null;
+  }
+  /* バーベルで扱う種目か（バー重量も返す）。マシン・自重は対象外。 */
+  function barbellOf(name) {
+    var n = String(name);
+    if (/EZバー/.test(n)) return 10;                       // EZバーはうちのジム基準で10kg
+    if (/ハック|マシン|ケーブル|レッグ|カーフ|ペック|プレスダウン|ラット|シーテッド|アイソラテラル/.test(n)) return null;
+    if (/バーベル|ベンチプレス|スクワット|RDL|デッドリフト/.test(n)) return 20;   // オリンピックバー20kg
+    return null;
+  }
+
+  function openPlates(total, bar) {
+    var side = (total - bar) / 2;
+    var rows = '', visual = '<div class="barend"></div><div class="collar"></div>';
+    if (side < -1e-9) {
+      rows = '<div class="prow"><span>バー（' + bar + 'kg）より軽い重量です</span></div>';
+    } else {
+      var rest = side, used = [];
+      PLATES.forEach(function (p) {
+        while (rest >= p - 1e-9) { used.push(p); rest -= p; }
+      });
+      used.forEach(function (p) {
+        var h = 22 + Math.sqrt(p / 25) * 40;
+        visual += '<div class="pl" style="height:' + h.toFixed(0) + 'px">' + (p >= 10 ? p : String(p).replace('0.', '.')) + '</div>';
+      });
+      rows += '<div class="prow"><span>バー</span><b>' + bar + 'kg</b></div>';
+      rows += '<div class="prow"><span>片側に付けるプレート</span><b>' + (used.length ? used.join(' + ') : 'なし') + '</b></div>';
+      rows += '<div class="prow"><span>片側合計</span><b>' + (+(side - rest).toFixed(2)) + 'kg</b></div>';
+      if (rest > 1e-9) rows += '<div class="prow"><span class="warn">あと片側 ' + (+rest.toFixed(2)) + 'kg は標準プレートで作れない端数です</span></div>';
+    }
+    document.getElementById('pwTotal').innerHTML = (+total) + '<small>kg</small>';
+    document.getElementById('platesV').innerHTML = visual;
+    document.getElementById('plateRows').innerHTML = rows;
+    document.getElementById('veil').hidden = false;
+  }
+  document.getElementById('veil').addEventListener('click', function (e) {
+    if (!document.getElementById('psheet').contains(e.target)) this.hidden = true;
+  });
+
+  /* =========================================================================
+     5. セット行・種目カードの描画
+     ========================================================================= */
+  /* "rest 2–3 min" → 120秒、"rest 90 sec" → 90秒。読めなければ0（タイマーなし） */
+  function parseRestSec(str) {
+    if (!str) return 0;
+    var s = String(str);
+    var m = s.match(/(\d+(?:\.\d+)?)\s*(?:–|〜|-)?\s*(?:\d+(?:\.\d+)?)?\s*min/);
+    if (m) return Math.round(+m[1] * 60);
+    m = s.match(/(\d+)\s*sec/);
+    if (m) return +m[1];
+    return 0;
+  }
+  function shortRest(str) {
+    if (!str) return '';
+    return String(str).replace(/rest\s*/i, '').replace(/\s*min/, '分').replace(/\s*sec/, '秒');
+  }
+  /* "6〜8回" → 8（レンジ上限）。"AMRAP ★" 等はnull */
+  function parseUpperReps(str) {
+    var m = String(str || '').match(/(\d+)\s*(?:〜|–|-)\s*(\d+)\s*回/);
+    if (m) return +m[2];
+    m = String(str || '').match(/(\d+)\s*回/);
+    return m ? +m[1] : null;
+  }
+
+  var SID = 0; /* セットにふる通し番号（チェック保存のID） */
+  function setRow(s, exName, checkable) {
+    var restSec = parseRestSec(s.rest);
+    var exPlain = exName.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    var wkg = parseWeightKg(s.weight), bar = wkg != null ? barbellOf(exName) : null;
+    var wHtml = '';
+    if (s.weight) {
+      if (bar != null && wkg != null) {
+        wHtml = '<span class="s-w plate" onclick="event.stopPropagation();openPlates(' + wkg + ',' + bar + ')">' + s.weight + '</span><span class="x">×</span>';
+      } else {
+        wHtml = '<span class="s-w">' + s.weight + '</span><span class="x">×</span>';
+      }
+    }
+    if (!checkable) {
+      return '<div class="set" style="cursor:default">'
+        + '<span class="s-check">✓</span>'
+        + '<span class="s-label' + (s.warm ? ' warm' : '') + '">' + s.label + '</span>'
+        + '<span class="s-main">' + wHtml
+        + '<span class="' + (s.accent ? 'accent' : 'reps') + '">' + s.reps + '</span></span>'
+        + '<span class="s-rest">' + shortRest(s.rest) + '</span></div>';
+    }
+    var id = 's' + (SID++);
+    SETINFO[id] = {
+      ex: exPlain, label: s.label,
+      weightText: s.weight || '', weightKg: wkg,
+      upper: parseUpperReps(s.reps), amrap: /AMRAP/i.test(String(s.reps))
+    };
+    var isDone = !!RUN.done[id];
+    return '<button class="set' + (isDone ? ' done' : '') + '" data-sid="' + id + '" data-rest="' + restSec + '" data-ex="' + exPlain + '" onclick="toggleSet(this)">'
+      + '<span class="s-check">✓</span>'
+      + '<span class="s-label' + (s.warm ? ' warm' : '') + '">' + s.label + '</span>'
+      + '<span class="s-main">' + wHtml
+      + '<span class="' + (s.accent ? 'accent' : 'reps') + '">' + s.reps + '</span></span>'
+      + '<span class="s-rest">' + shortRest(s.rest) + '</span>'
+      + '</button>'
+      + '<div class="act" id="act-' + id + '"' + (isDone ? '' : ' hidden') + '></div>';
+  }
+  function setsBlock(sets, exName, checkable) {
+    return '<div class="sets">' + sets.map(function (s) { return setRow(s, exName, checkable); }).join('') + '</div>';
+  }
+
+  function renderExercise(ex, checkable) {
+    var h = '<article class="card ex"><div class="ex-head"><div class="ex-no">' + ex.no + '</div>'
       + '<div class="ex-titles"><div class="ex-name">' + ex.name + '</div>'
       + (ex.tag ? '<span class="ex-tag">' + ex.tag + '</span>' : '') + '</div></div>';
-    if (ex.last) h += '<div class="ex-last"><span class="lbl">前回</span><b>' + ex.last + '</b>　← 今日はこれを超える</div>';
+    if (ex.last) h += '<div class="ex-last"><span class="lbl">前回</span><b>' + ex.last + '</b><span class="beat">今日はこれを超える</span></div>';
     if (ex.superset) {
       h += '<div class="ss-flow"><span class="step">' + ex.superset.steps[0] + '</span>'
-        + '<span class="arrow">↓　休まずそのまま</span>'
+        + '<span class="arrow">↓ 休まずそのまま</span>'
         + '<span class="step">' + ex.superset.steps[1] + '</span>'
-        + '<span class="arrow">↓　' + ex.superset.note + '</span></div>';
+        + '<span class="arrow">↓ ' + ex.superset.note + '</span></div>';
     }
     if (ex.subgroups) {
       ex.subgroups.forEach(function (sg) {
-        h += '<div class="subhead">' + sg.subhead + '</div>' + setsBlock(sg.sets);
-        if (sg.tip) h += '<p class="tip">' + sg.tip + '</p>';
+        h += '<div class="subhead">' + sg.subhead + '</div>' + setsBlock(sg.sets, ex.name, checkable);
+        if (sg.tip) h += '<details class="fold tip"><summary>コツ <span class="chev">▾</span></summary><div class="fold-body">' + sg.tip + '</div></details>';
       });
-    } else if (ex.sets) { h += setsBlock(ex.sets); }
-    if (ex.why) h += '<p class="why"><span class="lbl">なぜ</span>' + ex.why + '</p>';
-    if (ex.tip) h += '<p class="tip">' + ex.tip + '</p>';
+    } else if (ex.sets) { h += setsBlock(ex.sets, ex.name, checkable); }
+    var folds = '';
+    if (ex.why) folds += '<details class="fold"><summary>なぜこのメニュー？ <span class="chev">▾</span></summary><div class="fold-body">' + ex.why + '</div></details>';
+    if (ex.tip && !ex.subgroups) folds += '<details class="fold tip"><summary>フォームのコツ <span class="chev">▾</span></summary><div class="fold-body">' + ex.tip + '</div></details>';
+    if (folds) h += '<div class="ex-fold">' + folds + '</div>';
     return h + '</article>';
   }
 
-  function masthead(s) {
-    return '<header class="masthead"><div class="masthead-top">'
-      + '<span class="kicker">Menu</span><span class="date">' + s.name.replace('-', ' / ') + '</span></div>'
-      + '<h1 class="title">' + s.name + '</h1><div class="title-jp">' + s.titleJp + '</div>'
-      + '<p class="lede">' + s.lede + '　／　目安 <span class="min">' + s.minutes + '分</span></p></header>';
-  }
-  function sessionInner(s) {
+  function sessionInner(s, checkable) {
     var h = '';
-    if (s.rule) h += '<div class="rulenote"><span class="kicker k">2-up rule</span><p>' + s.rule + '</p></div>';
-    s.exercises.forEach(function (ex) { h += renderExercise(ex); });
+    s.exercises.forEach(function (ex) { h += renderExercise(ex, checkable); });
     return h;
   }
-  function renderSession(s) { return masthead(s) + sessionInner(s); }
 
-  function fmtDate(d) { var p = d.split('-'); return (+p[1]) + '/' + (+p[2]); }
-
-  /* 36回分の進捗を3タブで同じ見た目にする。数字の真実源は src/data.js の meta。 */
-  function programProgress() {
-    var m = D.meta, done = m.sessionsDone || 0, total = m.sessionsTotal || 0, next = done + 1;
-    var status = done >= total ? '全' + total + '回完了です。' : '全' + total + '回中' + done + '回完了。次は' + next + '回目です。';
-    var dots = '';
-    for (var i = 1; i <= total; i++) {
-      if ((i - 1) % 3 === 0) dots += '<span class="pp-week" aria-hidden="true">';
-      dots += '<span class="pp-dot' + (i <= done ? ' done' : (i === next ? ' next' : '')) + '"></span>';
-      if (i % 3 === 0 || i === total) dots += '</span>';
+  /* =========================================================================
+     6. 「今日」タブ
+     ========================================================================= */
+  function heroBlock(s) {
+    var m = D.meta, done = m.sessionsDone || 0, total = m.sessionsTotal || 36;
+    var ring = ringSVG(done / total, 68, 5, '<b>' + done + '</b><small>/' + total + '</small>');
+    var h = '<section class="card hero">'
+      + '<div class="hero-top"><div style="min-width:0">'
+      + '<span class="kicker">Next Session <span class="jp">・ 次回</span></span>'
+      + '<h1 class="hero-name">' + s.name + '</h1>'
+      + '<div class="hero-sub">' + s.titleJp + '</div>'
+      + '</div>' + ring + '</div>'
+      + '<div class="hero-lede">' + s.lede + '</div>'
+      + '<div class="hero-meta">'
+      + '<span class="chip">目安 ' + s.minutes + '分</span>'
+      + '<span class="chip">' + s.exercises.length + '種目</span>'
+      + '<span class="chip oxc">' + m.phaseLabel + '</span>'
+      + '</div>';
+    if (s.payoff && s.payoff.length) {
+      h += '<details class="payoff"><summary>今日つくる身体（仕上がり予告）<span class="chev">▾</span></summary>';
+      s.payoff.forEach(function (p) {
+        h += '<div class="payoff-item"><span class="po-target">' + p.target + '</span><span class="po-text">' + p.text + '</span></div>';
+      });
+      h += '</details>';
     }
-    return '<section class="program-progress" aria-label="今のプログラム進捗">'
-      + '<div class="pp-head"><span class="kicker">Current Program</span><span class="pp-phase">' + m.phaseLabel + '</span></div>'
-      + '<div class="pp-row"><span class="pp-label">今のプログラム（週3 × 12週）</span>'
-      + '<span class="pp-count"><b>' + done + '</b> / ' + total + ' 回</span></div>'
-      + '<div class="pp-dots" aria-label="' + status + '">' + dots + '</div>'
-      + '<p class="pp-note">' + m.phaseNote + '</p></section>';
+    return h + '</section>';
   }
 
-  function clampNum(v, min, max) { return Math.max(min, Math.min(max, v)); }
-
-  function milestoneLabel(n, total, phaseEnd) {
-    if (n === total) return '36回完了';
-    if (n === phaseEnd) return 'Phase完了';
-    return Math.round(n / total * 100) + '%到達';
+  function runBlock() {
+    return '<section class="card run" id="runBox">'
+      + '<div class="run-head"><span class="t">今日の進捗（セットをタップで完了）</span><b id="runCount">0</b></div>'
+      + '<div class="run-bar"><div class="run-fill" id="runFill"></div></div>'
+      + '<div class="run-msg">全セット完了。今日も一歩、確実に大きくなった。</div>'
+      + '<div class="run-actions">'
+      + '<button class="copybtn" id="copyBtn" onclick="copyReport()" disabled>今日の結果をコピー</button>'
+      + '<span class="copy-note" id="copyNote">コピーした文をClaudeに貼ると、そのままトレ報告できます。</span>'
+      + '</div></section>';
   }
 
-  function nextMilestone(done, total, phaseEnd) {
-    var marks = [Math.ceil(total * .25), phaseEnd, Math.ceil(total * .5), Math.ceil(total * .75), total];
-    var seen = {}, uniq = [];
-    marks.forEach(function (m) {
-      if (m > done && !seen[m]) { seen[m] = true; uniq.push(m); }
-    });
-    uniq.sort(function (a, b) { return a - b; });
-    return uniq[0] || total;
+  function buildNext() {
+    var cur = D.sessions[D.currentKey];
+    SID = 0; SETINFO = {};
+    var h = heroBlock(cur)
+      + runBlock()
+      + (cur.coachIntro ? coachBlock(cur.coachIntro) : '')
+      + '<div style="margin-top:20px"><span class="kicker">Workout <span class="jp">・ 今日のメニュー</span></span></div>'
+      + sessionInner(cur, true);
+    if (cur.rule) h += '<div class="card" style="padding:12px 16px"><span class="kicker">2-up rule</span>'
+      + '<p style="font-size:12.5px;color:var(--muted);margin-top:4px">' + cur.rule + '</p></div>';
+    var last = D.log && D.log[0];
+    if (last) {
+      var i = D.rotation.indexOf(D.currentKey);
+      var nn = D.sessions[D.rotation[(i + 1) % D.rotation.length]];
+      var lastName = D.sessions[last.sessionKey] ? D.sessions[last.sessionKey].name : last.sessionKey;
+      h += '<footer class="card colophon">'
+        + '<span class="kicker">Last Session <span class="jp">・ 前回 ' + lastName + '（' + fmtDate(last.date) + '）</span></span>'
+        + '<p class="colo-hl">' + last.highlights + '</p>'
+        + '<p class="next">次の次は <b>' + nn.name + '</b>（' + nn.titleJp + '）</p></footer>';
+    }
+    document.getElementById('next-sheet').innerHTML = h;
+    RUN.total = document.querySelectorAll('#next-sheet .set[data-sid]').length;
+    /* 復元したチェック済みセットの実績表示を描き直す */
+    Object.keys(RUN.done).forEach(function (id) { renderAct(id); });
+    updateRunUI();
   }
 
-  function programMap() {
+  /* =========================================================================
+     7. 「プログラム」タブ
+     ========================================================================= */
+  function programMapCard() {
     var m = D.meta;
     var done = clampNum(m.sessionsDone || 0, 0, m.sessionsTotal || 36);
     var total = m.sessionsTotal || 36;
     var nextNo = clampNum(done + 1, 1, total);
     var phaseSize = Math.max(1, Math.round(total / 3));
     var phaseNo = done >= total ? 3 : clampNum(Math.floor(done / phaseSize) + 1, 1, 3);
-    var phaseStart = (phaseNo - 1) * phaseSize + 1;
     var phaseEnd = phaseNo === 3 ? total : phaseNo * phaseSize;
-    var phaseDone = clampNum(done - (phaseStart - 1), 0, phaseEnd - phaseStart + 1);
-    var weekNo = clampNum(Math.floor(done / 3) + 1, 1, Math.ceil(total / 3));
-    var inWeek = done >= total ? 3 : (done % 3) + 1;
-    var milestone = nextMilestone(done, total, phaseEnd);
-    var leftToMilestone = Math.max(0, milestone - done);
     var cur = D.sessions[D.currentKey];
     var phaseNames = ['土台づくり', '重量を伸ばす', '仕上げと確認'];
     var phaseNotes = ['フォーム習得・基準づくり', '主役種目を少しずつ更新', '疲労を見ながら定着'];
-    var h = '<section class="program-map" aria-label="プログラム全体の現在地">'
-      + '<div class="pm-head"><span class="kicker">Program Map</span><span class="pm-sub">12 weeks / 36 sessions</span></div>'
-      + '<div class="pm-now"><div class="pm-big">' + phaseDone + '<small>/12</small></div>'
-      + '<p class="pm-copy"><b>Phase ' + phaseNo + '</b> の途中です。全体では <b>' + done + ' / ' + total + '回</b> 完了。'
-      + '次は <b>' + nextNo + '回目</b>、' + (cur ? '<b>' + cur.name + '</b>' : '次のメニュー') + ' です。'
-      + '週の目安では <b>Week ' + weekNo + ' の' + inWeek + '回目</b> に進みます。</p></div>';
+
+    var marks = [Math.ceil(total * .25), phaseEnd, Math.ceil(total * .5), Math.ceil(total * .75), total];
+    var seen = {}, uniq = [];
+    marks.forEach(function (x) { if (x > done && !seen[x]) { seen[x] = true; uniq.push(x); } });
+    uniq.sort(function (a, b) { return a - b; });
+    var milestone = uniq[0] || total;
+    var mLabel = milestone === total ? '36回完了' : (milestone === phaseEnd ? 'Phase完了' : Math.round(milestone / total * 100) + '%到達');
+
+    var h = '<section class="card">'
+      + '<span class="kicker">Program Map <span class="jp">・ 現在地</span></span>'
+      + '<div class="bigring-card" style="margin-top:10px">'
+      + ringSVG(done / total, 94, 7, '<b style="font-size:23px">' + done + '</b><small>/' + total + '回</small>')
+      + '<div class="bigring-copy"><span class="ph">Phase ' + phaseNo + ' ・ ' + phaseNames[phaseNo - 1] + '</span>'
+      + '<p>次は<b>' + nextNo + '回目</b>、' + (cur ? '<b>' + cur.name + '</b>' : '次のメニュー') + '。'
+      + mLabel + 'まであと<b>' + Math.max(0, milestone - done) + '回</b>。</p></div></div>';
 
     h += '<div class="pm-track">';
     for (var i = 1; i <= 3; i++) {
-      var start = (i - 1) * phaseSize + 1;
-      var end = i === 3 ? total : i * phaseSize;
-      var state = done >= end ? ' done' : (i === phaseNo ? ' now' : '');
+      var st = (i - 1) * phaseSize + 1;
+      var en = i === 3 ? total : i * phaseSize;
+      var state = done >= en ? ' done' : (i === phaseNo ? ' now' : '');
       h += '<div class="pm-phase' + state + '"><span class="num">Phase ' + i + '</span>'
         + '<span class="name">' + phaseNames[i - 1] + '</span>'
-        + '<span class="range">' + start + '-' + end + '回 ・ ' + phaseNotes[i - 1] + '</span></div>';
+        + '<span class="range">' + st + '–' + en + '回 ・ ' + phaseNotes[i - 1] + '</span></div>';
     }
     h += '</div>';
 
     h += '<div class="pm-next">'
-      + '<div class="pm-next-item"><span class="k">Next milestone</span><div class="v">' + milestone + '回目で <b>' + milestoneLabel(milestone, total, phaseEnd) + '</b>。あと' + leftToMilestone + '回です。</div></div>'
-      + '<div class="pm-next-item"><span class="k">Current focus</span><div class="v">' + m.phaseNote + '</div></div>'
-      + '</div>';
-
-    h += '<div class="pm-rotation">';
-    D.rotation.forEach(function (k, idx) {
-      var s = D.sessions[k], now = k === D.currentKey;
-      h += '<div class="pm-step' + (now ? ' now' : '') + '"><span class="ord">' + (idx + 1) + '</span>'
-        + '<span class="name">' + (s ? s.name : k) + (now ? ' ・ 次' : '') + '</span></div>';
-    });
-    h += '</div></section>';
+      + '<div class="pm-next-item"><span class="k">Next Milestone</span><div class="v"><b>' + milestone + '回目</b>で' + mLabel + '。あと' + Math.max(0, milestone - done) + '回。</div></div>'
+      + '<div class="pm-next-item"><span class="k">Current Focus</span><div class="v">' + m.phaseNote + '</div></div>'
+      + '</div></section>';
     return h;
   }
 
-  /* 次回タブ */
-  function buildNext() {
-    var cur = D.sessions[D.currentKey];
-    var h = masthead(cur) + programProgress() + (cur.coachIntro ? coachBlock(cur.coachIntro) : '')
-      + sessionInner(cur);
-    var last = D.log && D.log[0];
-    if (last) {
-      var i = D.rotation.indexOf(D.currentKey);
-      var nn = D.sessions[D.rotation[(i + 1) % D.rotation.length]];
-      var lastName = D.sessions[last.sessionKey] ? D.sessions[last.sessionKey].name : last.sessionKey;
-      h += '<footer class="colophon">'
-        + '<span class="kicker k">前号の記録 ・ Last Session — ' + lastName + '（' + last.date + '）</span>'
-        + '<p class="colo-hl">' + last.highlights + '</p>'
-        + '<p class="next">次の次は <b>' + nn.name + '</b>（' + nn.titleJp + '）</p></footer>';
-    }
-    document.getElementById('next-sheet').innerHTML = h;
+  /* records の "× 9（AMRAP）" から回数を拾って推定1RM（Epley式）を出す */
+  function e1rmOf(rec) {
+    if (rec.unit.indexOf('kg') !== 0) return null;
+    if (/side|相当/.test(rec.unit + rec.reps)) return null;
+    var w = parseFloat(rec.weight);
+    var m = String(rec.reps).match(/×?\s*(\d+)/);
+    if (!w || !m) return null;
+    var reps = +m[1];
+    if (reps <= 1) return w;
+    return Math.round(w * (1 + reps / 30));
   }
 
-  /* プログラムタブ */
   function buildProgram() {
     var m = D.meta;
-    var h = '<header class="masthead"><div class="masthead-top">'
-      + '<span class="kicker">Program</span><span class="date">' + m.phaseLabel + '</span></div>'
-      + '<h1 class="title sm">プログラム</h1><div class="title-jp">' + m.splitName + '</div>'
-      + '<p class="lede">' + m.overview + '</p></header>';
+    var h = '<header class="head-plain">'
+      + '<span class="kicker">Program</span>'
+      + '<h1>' + m.programName + '</h1>'
+      + '<div class="sub">' + m.splitName + ' ・ ' + m.phaseLabel + '</div>'
+      + '</header>';
 
-    h += programProgress();
-    h += programMap();
+    h += programMapCard();
 
-    if (m.about && m.about.length) {
-      h += '<section class="about"><span class="kicker k">このプログラムについて</span>';
-      m.about.forEach(function (a) { h += '<div class="about-item"><span class="ai-h">' + a.h + '</span><p class="ai-p">' + a.p + '</p></div>'; });
-      h += '</section>';
-    }
-
-    h += '<span class="kicker">ローテーション（タップで開く）</span><div class="rot-list">';
-    D.rotation.forEach(function (k) {
+    /* ローテーション（タップで中身） */
+    h += '<section class="card rot-card"><span class="kicker" style="display:block;padding:12px 2px 2px">Rotation <span class="jp">・ 4分割（タップで中身）</span></span>';
+    D.rotation.forEach(function (k, idx) {
       var s = D.sessions[k], now = (k === D.currentKey);
-      h += '<button class="rot-h" id="rh-' + k + '" onclick="toggleSession(\'' + k + '\')">'
+      h += '<div class="rot-item"><button class="rot-h" id="rh-' + k + '" onclick="toggleSession(\'' + k + '\')">'
+        + '<span class="ord">' + (idx + 1) + '</span>'
         + '<span class="rn">' + s.name + '<span class="rj">' + s.titleJp + '</span></span>'
         + (now ? '<span class="rmark">次</span>' : '')
         + '<span class="chev">▾</span></button>'
         + '<div class="rot-body" id="rb-' + k + '"><div class="inner">'
         + '<p class="acc-lede">' + s.lede + '　／　目安 ' + s.minutes + '分</p>'
-        + sessionInner(s) + '</div></div>';
+        + sessionInner(s, false) + '</div></div></div>';
     });
-    h += '</div>';
+    h += '</section>';
 
-    h += '<div class="growth"><span class="kicker k">主要種目の伸び（開始 → 現在）</span>';
+    /* 主要種目の伸び */
+    h += '<section class="card"><span class="kicker">Progress <span class="jp">・ 主要種目の伸び</span></span>';
     D.progress.forEach(function (p) {
-      var up = (p.current > p.start) ? ' <span class="up">+' + (p.current - p.start) + '</span>' : '';
-      h += '<div class="grow-row"><span class="gl">' + p.lift + '</span>'
-        + '<span class="gv"><span class="from">' + p.start + ' →</span> <b>' + p.current + p.unit + '</b>' + up + '</span></div>';
+      var gain = p.current - p.start;
+      var pct = clampNum(gain / (p.start * .5), 0, 1);  /* 開始比+50%でバー満タン */
+      h += '<div class="grow-row"><div class="grow-top"><span class="gl">' + p.lift + '</span>'
+        + '<span class="gv"><span class="from">' + p.start + ' →</span> <b>' + p.current + '</b>' + p.unit
+        + (gain > 0 ? '<span class="up">+' + gain + '</span>' : '') + '</span></div>'
+        + '<div class="grow-bar"><div class="grow-fill" style="width:' + (pct * 100).toFixed(0) + '%"></div></div></div>';
     });
-    h += '</div>';
+    h += '</section>';
 
+    /* PRボード（推定1RMつき） */
     if (D.records && D.records.length) {
-      h += '<div class="records"><span class="kicker k">自己ベスト ・ Personal Records</span>';
+      h += '<section class="card"><span class="kicker">Personal Records <span class="jp">・ 自己ベスト</span></span>';
       D.records.forEach(function (r) {
+        var e1 = e1rmOf(r);
         h += '<div class="rec-row"><div class="rec-l"><div class="rl-name">' + r.lift
           + (r.isNew ? '<span class="rl-new">NEW</span>' : '') + '</div>'
-          + '<div class="rl-date">' + r.date.replace(/-/g, ' / ') + '</div></div>'
+          + '<div class="rl-date">' + r.date.replace(/-/g, '/') + '</div>'
+          + (e1 ? '<div class="rl-e1rm">推定1RM ' + e1 + 'kg</div>' : '')
+          + '</div>'
           + '<div class="rec-v"><span class="rv-num">' + r.weight + '<small>' + r.unit + '</small></span>'
-          + ' <span class="rv-reps">' + r.reps + '</span></div></div>';
+          + '<span class="rv-reps">' + r.reps + '</span></div></div>';
       });
-      h += '</div>';
+      h += '</section>';
     }
 
-    if (D.inbody && D.inbody.length > 1) {
-      h += '<div class="inbody"><span class="kicker k">体組成の推移 ・ InBody</span>' + inbodySVG(D.inbody)
-        + '<div class="ib-legend"><span><span class="ib-sw" style="background:var(--oxblood)"></span>骨格筋量 (kg)</span>'
-        + '<span><span class="ib-sw" style="border-top:2px dashed var(--ink-faint)"></span>体脂肪率 (%)</span></div></div>';
+    /* InBody（体組成） */
+    h += inbodySection();
+
+    /* このプログラムについて */
+    if (m.about && m.about.length) {
+      h += '<section class="card"><span class="kicker">About <span class="jp">・ このプログラムについて</span></span>';
+      m.about.forEach(function (a) { h += '<div class="about-item"><span class="ai-h">' + a.h + '</span><p class="ai-p">' + a.p + '</p></div>'; });
+      h += '</section>';
     }
 
     document.getElementById('prog-sheet').innerHTML = h;
   }
 
-  /* InBody 推移の折れ線（骨格筋量↑＝オックスブラッド実線／体脂肪率↓＝淡い破線）。
-     2指標は別スケールで、それぞれ最小〜最大をプロット帯いっぱいに伸ばして見せる。 */
+  /* =========================================================================
+     8. InBody（体組成）セクション
+     ========================================================================= */
+  /* 2つの日付の間の月数（YYYY-MM-DD）。C案のヘッダー「◯ヶ月」に使う。 */
+  function monthsBetween(d0, d1) {
+    var a = d0.split('-'), b = d1.split('-');
+    return Math.max(1, (b[0] - a[0]) * 12 + (b[1] - a[1]));
+  }
+  /* 符号つきの差分文字列。＋/− を全角で、絶対値は小数1桁。 */
+  function signStr(v) { return (v >= 0 ? '＋' : '−') + Math.abs(v).toFixed(1); }
+  /* 変化の良し悪し → クラス名。lowerBetter=true なら「下がるほど良い」（体脂肪率）。 */
+  function dirClass(delta, lowerBetter) {
+    if (Math.abs(delta) < 0.05) return 'flat';
+    var good = lowerBetter ? delta < 0 : delta > 0;
+    return good ? 'good' : 'bad';
+  }
+  /* ヒーローカード用の極小スパークライン（1系列）。最新点だけドット。 */
+  function ibSpark(series, color) {
+    var W = 140, H = 32, p = 4, n = series.length;
+    var mn = Math.min.apply(null, series), mx = Math.max.apply(null, series), rg = (mx - mn) || 1;
+    var X = function (i) { return p + (W - 2 * p) * i / (n - 1); };
+    var Y = function (v) { return p + (H - 2 * p) * (1 - (v - mn) / rg); };
+    var pts = series.map(function (v, i) { return [X(i), Y(v)]; });
+    var d = 'M' + pts.map(function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' L');
+    var area = d + ' L' + X(n - 1).toFixed(1) + ' ' + (H - p) + ' L' + p + ' ' + (H - p) + ' Z';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-hidden="true">'
+      + '<path d="' + area + '" fill="' + color + '" fill-opacity="0.10"/>'
+      + '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2"/>'
+      + '<circle cx="' + X(n - 1).toFixed(1) + '" cy="' + Y(series[n - 1]).toFixed(1) + '" r="3" fill="' + color + '" stroke="var(--card)" stroke-width="1.3"/></svg>';
+  }
+
+  function inbodySection() {
+    var arr = D.inbody || [];
+    if (arr.length < 2) return '';
+    var cur = arr[arr.length - 1], prev = arr[arr.length - 2], first = arr[0];
+    var months = monthsBetween(first.date, cur.date);
+    var h = '<section class="card"><span class="kicker">Body Composition <span class="jp">・ InBody（体組成）</span></span>';
+
+    /* C案のビフォー→アフター見出し（開始月 →◯ヶ月→ 最新月） */
+    h += '<div class="ib-head"><span class="then">' + first.date.slice(0, 7).replace('-', '.') + '</span>'
+      + '<span class="ar"></span><span class="span">' + months + 'ヶ月</span>'
+      + '<span class="now">' + cur.date.slice(0, 7).replace('-', '.') + '</span></div>';
+
+    /* 主指標2枚（骨格筋量＝赤／体脂肪率＝サンド）。前回比バッジ＋開始からの差＋スパークライン。 */
+    var dM = cur.muscle - prev.muscle, sM = cur.muscle - first.muscle;
+    var dF = cur.fat - prev.fat, sF = cur.fat - first.fat;
+    h += '<div class="ib-heroes">'
+      + '<div class="ib-hc m"><div class="l">骨格筋量</div><div class="v">' + cur.muscle.toFixed(1) + '<small>kg</small></div>'
+      + '<div class="bd ' + dirClass(dM, false) + '">前回比 ' + signStr(dM) + 'kg</div>'
+      + '<div class="fromstart">開始から <b class="' + dirClass(sM, false) + '">' + signStr(sM) + 'kg</b></div>'
+      + '<div class="spark">' + ibSpark(arr.map(function (r) { return r.muscle; }), '#7C2A22') + '</div></div>'
+      + '<div class="ib-hc f"><div class="l">体脂肪率</div><div class="v">' + cur.fat.toFixed(1) + '<small>%</small></div>'
+      + '<div class="bd ' + dirClass(dF, true) + '">前回比 ' + signStr(dF) + '%</div>'
+      + '<div class="fromstart">開始から <b class="' + dirClass(sF, true) + '">' + signStr(sF) + '%</b></div>'
+      + '<div class="spark">' + ibSpark(arr.map(function (r) { return r.fat; }), '#B08A45') + '</div></div>'
+      + '</div>';
+
+    /* サブ指標の帯（体重＝開始比つき／基礎代謝／腹囲）。参考値として格下げ表示。 */
+    var withBmr = arr.filter(function (r) { return r.bmr != null; });
+    var withWaist = arr.filter(function (r) { return r.waist != null; });
+    var bmr = withBmr.length ? withBmr[withBmr.length - 1].bmr : null;
+    var waist = withWaist.length ? withWaist[withWaist.length - 1].waist : null;
+    h += '<div class="ib-band">'
+      + '<div><div class="k">体重</div><div class="v">' + cur.weight.toFixed(1) + '<small>kg</small></div><div class="fs">開始 ' + signStr(cur.weight - first.weight) + '</div></div>'
+      + '<div><div class="k">基礎代謝</div><div class="v">' + (bmr != null ? bmr.toLocaleString() : '—') + '<small>kcal</small></div></div>'
+      + '<div><div class="k">腹囲</div><div class="v">' + (waist != null ? waist.toFixed(1) : '—') + '<small>cm</small></div></div>'
+      + '</div>';
+
+    /* InBody点数ゲージ（現在値まで塗り＋最高点にマーカー） */
+    var scored = arr.filter(function (r) { return r.score != null; });
+    if (scored.length) {
+      var sc = scored[scored.length - 1].score;
+      var mx = Math.max.apply(null, scored.map(function (r) { return r.score; }));
+      h += '<div class="ib-gauge"><div class="gn">' + sc + '<small>/100</small></div>'
+        + '<div class="gb"><div class="gt">InBody 点数（体成分の総合評価）</div>'
+        + '<div class="gtrack"><i style="width:' + sc + '%"></i><b style="left:' + mx + '%"><span>最高' + mx + '</span></b></div></div></div>';
+    }
+
+    /* 推移グラフは畳んでおく（普段は一覧性優先、見たい時だけ開く） */
+    h += '<details class="ib-trend"><summary>推移をくわしく見る（' + arr.length + '回分） <span class="chev">▾</span></summary>'
+      + inbodySVG(arr)
+      + '<div class="ib-legend"><span><span class="ib-sw" style="background:var(--ox)"></span>骨格筋量 (kg)</span>'
+      + '<span><span class="ib-sw" style="background:var(--sand)"></span>体脂肪率 (%)</span>'
+      + '<span style="margin-left:auto;color:var(--faint)">左軸 筋肉kg ・ 右軸 脂肪%</span></div></details>';
+    h += '</section>';
+
+    /* 部位別筋肉量の成長（部位別があるデータの最初 → 最新） */
+    var seg = arr.filter(function (r) { return r.armR != null; });
+    if (seg.length >= 2) {
+      var s0 = seg[0], s1 = seg[seg.length - 1];
+      var parts = [
+        ['右腕', 'armR'], ['左腕', 'armL'], ['体幹', 'trunk'], ['右脚', 'legR'], ['左脚', 'legL']
+      ];
+      h += '<section class="card"><span class="kicker">Segmental <span class="jp">・ 部位別筋肉量の成長</span></span>';
+      parts.forEach(function (p) {
+        var v0 = s0[p[1]], v1 = s1[p[1]];
+        var pct = (v1 - v0) / v0 * 100;
+        var bar = clampNum(pct / 20, 0, 1);  /* +20%でバー満タン */
+        h += '<div class="seg-row"><span class="seg-name">' + p[0] + '</span>'
+          + '<div class="seg-bar"><div class="seg-fill" style="width:' + (bar * 100).toFixed(0) + '%"></div></div>'
+          + '<span class="seg-v"><span class="from">' + v0.toFixed(2) + ' →</span> <b>' + v1.toFixed(2) + '</b>kg'
+          + '<span class="up">' + (pct >= 0 ? '+' : '') + pct.toFixed(0) + '%</span></span></div>';
+      });
+      h += '<p class="seg-note">' + s0.date.replace(/-/g, '.') + '（トレ開始期）→ ' + s1.date.replace(/-/g, '.') + ' の比較。バーは +20% で満タン。</p></section>';
+    }
+    return h;
+  }
+
+  /* InBody 推移の折れ線（v2）。骨格筋量＝面塗りのメイン、体脂肪率＝破線のサブ。
+     グリッドと軸ラベルを整え、点の座標は測定日の実時間に比例させる。 */
   function inbodySVG(arr) {
-    var W = 340, H = 188, padL = 16, padR = 16, padT = 30, padB = 32, plotH = H - padT - padB;
+    var W = 340, H = 210, padL = 34, padR = 34, padT = 18, padB = 26;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
     var n = arr.length;
     var mus = arr.map(function (d) { return d.muscle; }), fat = arr.map(function (d) { return d.fat; });
-    var muMin = Math.min.apply(null, mus), muMax = Math.max.apply(null, mus);
-    var faMin = Math.min.apply(null, fat), faMax = Math.max.apply(null, fat);
+    /* 軸はキリのいい整数に丸める（グリッドの値が読めるように） */
+    var muLo = Math.floor(Math.min.apply(null, mus)), muHi = Math.ceil(Math.max.apply(null, mus));
+    var faLo = Math.floor(Math.min.apply(null, fat)), faHi = Math.ceil(Math.max.apply(null, fat));
+    if (muHi === muLo) muHi++;
+    if (faHi === faLo) faHi++;
     var ts = arr.map(function (d) { return new Date(d.date).getTime(); });
     var t0 = ts[0], t1 = ts[n - 1];
-    function x(i) { return padL + (W - padL - padR) * (n === 1 || t1 === t0 ? 0.5 : (ts[i] - t0) / (t1 - t0)); }
-    function ym(v) { return (H - padB) - ((v - muMin) / ((muMax - muMin) || 1)) * plotH; }
-    function yf(v) { return padT + ((faMax - v) / ((faMax - faMin) || 1)) * plotH; }
-    var mp = arr.map(function (d, i) { return x(i).toFixed(1) + ',' + ym(d.muscle).toFixed(1); }).join(' ');
-    var fp = arr.map(function (d, i) { return x(i).toFixed(1) + ',' + yf(d.fat).toFixed(1); }).join(' ');
-    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;margin-top:4px" xmlns="http://www.w3.org/2000/svg">';
-    s += '<polyline fill="none" stroke="#A89E90" stroke-width="2" stroke-dasharray="4 3" points="' + fp + '"/>';
-    s += '<polyline fill="none" stroke="#7C2A22" stroke-width="2.6" points="' + mp + '"/>';
-    arr.forEach(function (d, i) {
-      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + ym(d.muscle).toFixed(1) + '" r="' + (i === n - 1 ? 3.4 : 3) + '" fill="#7C2A22"/>';
-      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + yf(d.fat).toFixed(1) + '" r="' + (i === n - 1 ? 3.4 : 3) + '" fill="#A89E90"/>';
+    function x(i) { return padL + plotW * (n === 1 || t1 === t0 ? 0.5 : (ts[i] - t0) / (t1 - t0)); }
+    function ym(v) { return padT + plotH * (1 - (v - muLo) / (muHi - muLo)); }
+    function yf(v) { return padT + plotH * (1 - (v - faLo) / (faHi - faLo)); }
+
+    /* なめらかな曲線（Catmull-Rom をベジェに変換） */
+    function smoothPath(pts) {
+      if (pts.length < 3) return 'M' + pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join('L');
+      var d = 'M' + pts[0][0].toFixed(1) + ',' + pts[0][1].toFixed(1);
+      for (var i = 0; i < pts.length - 1; i++) {
+        var p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+        d += 'C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ',' + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)
+          + ' ' + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ',' + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)
+          + ' ' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1);
+      }
+      return d;
+    }
+    var mpts = arr.map(function (d, i) { return [x(i), ym(d.muscle)]; });
+    var fpts = arr.map(function (d, i) { return [x(i), yf(d.fat)]; });
+    var mPath = smoothPath(mpts);
+    var areaPath = mPath + 'L' + mpts[n - 1][0].toFixed(1) + ',' + (H - padB) + 'L' + mpts[0][0].toFixed(1) + ',' + (H - padB) + 'Z';
+
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;margin-top:10px" xmlns="http://www.w3.org/2000/svg">';
+    s += '<defs><linearGradient id="ibg" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0" stop-color="#7C2A22" stop-opacity=".16"/>'
+      + '<stop offset="1" stop-color="#7C2A22" stop-opacity="0"/></linearGradient></defs>';
+
+    /* 水平グリッド（筋肉kg基準・3本）＋左軸ラベル。右軸は体脂肪% */
+    [muLo, (muLo + muHi) / 2, muHi].forEach(function (v) {
+      var y = ym(v);
+      s += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + y.toFixed(1) + '" stroke="#E6DDCB" stroke-width="1"/>';
+      s += '<text x="' + (padL - 6) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="end" font-family="Noto Sans JP,sans-serif" font-size="9.5" fill="#A99D8A">' + (v % 1 ? v.toFixed(1) : v) + '</text>';
     });
-    s += '<text x="' + x(n - 1).toFixed(1) + '" y="' + (ym(mus[n - 1]) - 9).toFixed(1) + '" text-anchor="end" font-family="Playfair Display,Georgia,serif" font-size="13" font-weight="700" fill="#7C2A22">' + mus[n - 1].toFixed(1) + 'kg ↑</text>';
-    s += '<text x="' + x(n - 1).toFixed(1) + '" y="' + (yf(fat[n - 1]) + 16).toFixed(1) + '" text-anchor="end" font-family="Playfair Display,Georgia,serif" font-size="13" font-weight="700" fill="#6E655A">' + fat[n - 1].toFixed(1) + '% ↓</text>';
-    s += '<text x="' + x(0).toFixed(1) + '" y="' + (ym(mus[0]) + 16).toFixed(1) + '" text-anchor="start" font-family="Playfair Display,Georgia,serif" font-size="11" fill="#9C5A50">' + mus[0].toFixed(1) + '</text>';
-    s += '<text x="' + x(0).toFixed(1) + '" y="' + (yf(fat[0]) - 8).toFixed(1) + '" text-anchor="start" font-family="Playfair Display,Georgia,serif" font-size="11" fill="#A89E90">' + fat[0].toFixed(1) + '</text>';
-    s += '<g font-family="Noto Sans JP,sans-serif" font-size="10" fill="#A89E90" text-anchor="middle">';
-    arr.forEach(function (d, i) { s += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 10) + '">' + d.date.slice(2, 7).replace('-', '.') + '</text>'; });
-    s += '</g></svg>';
+    [faLo, faHi].forEach(function (v) {
+      var y = yf(v);
+      s += '<text x="' + (W - padR + 6) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="start" font-family="Noto Sans JP,sans-serif" font-size="9.5" fill="#C4A672">' + v + '%</text>';
+    });
+
+    /* 面＋線 */
+    s += '<path d="' + areaPath + '" fill="url(#ibg)"/>';
+    s += '<path d="' + smoothPath(fpts) + '" fill="none" stroke="#B08A45" stroke-width="2" stroke-dasharray="5 4" opacity=".85"/>';
+    s += '<path d="' + mPath + '" fill="none" stroke="#7C2A22" stroke-width="2.6"/>';
+
+    /* 点（最新は大きく・白縁） */
+    arr.forEach(function (d, i) {
+      var last = i === n - 1;
+      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + yf(d.fat).toFixed(1) + '" r="' + (last ? 3.4 : 2.6) + '" fill="#B08A45" stroke="#FDFBF6" stroke-width="1.4"/>';
+      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + ym(d.muscle).toFixed(1) + '" r="' + (last ? 4.4 : 3.2) + '" fill="#7C2A22" stroke="#FDFBF6" stroke-width="1.6"/>';
+    });
+
+    /* 値ラベル（最初と最新のみ。散らかさない） */
+    s += '<text x="' + x(n - 1).toFixed(1) + '" y="' + (ym(mus[n - 1]) - 10).toFixed(1) + '" text-anchor="end" font-family="Playfair Display,Georgia,serif" font-size="13.5" font-weight="700" fill="#7C2A22">' + mus[n - 1].toFixed(1) + 'kg</text>';
+    s += '<text x="' + x(n - 1).toFixed(1) + '" y="' + (yf(fat[n - 1]) + 15).toFixed(1) + '" text-anchor="end" font-family="Playfair Display,Georgia,serif" font-size="12" font-weight="700" fill="#B08A45">' + fat[n - 1].toFixed(1) + '%</text>';
+    s += '<text x="' + x(0).toFixed(1) + '" y="' + (ym(mus[0]) + 16).toFixed(1) + '" text-anchor="start" font-family="Noto Sans JP,sans-serif" font-size="10" fill="#A99D8A">' + mus[0].toFixed(1) + '</text>';
+
+    /* x軸：年の変わり目と最新だけラベルを打つ（重なり防止） */
+    var lastYear = '';
+    arr.forEach(function (d, i) {
+      var y4 = d.date.slice(0, 4);
+      if (y4 !== lastYear) {
+        lastYear = y4;
+        s += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-family="Noto Sans JP,sans-serif" font-size="9.5" fill="#A99D8A">' + y4 + '</text>';
+      } else if (i === n - 1) {
+        s += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-family="Noto Sans JP,sans-serif" font-size="9.5" fill="#7A7060">' + (+d.date.slice(5, 7)) + '/' + (+d.date.slice(8, 10)) + '</text>';
+      }
+    });
+    s += '</svg>';
     return s;
   }
 
-  /* 継続カレンダー（ログタブ上部） */
-  var CAL = { idx: 0, months: [] };
+  /* =========================================================================
+     9. 「記録」タブ（継続カレンダー＋その日の記録）
+     ========================================================================= */
+  var CAL = { idx: 0, months: [], sel: null };
   var MON_LATIN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   function calBuildMonths() {
@@ -607,28 +1365,48 @@
     var sy, sm, ey = now.getFullYear(), em = now.getMonth() + 1;
     if (keys.length) { var f = keys[0].split('-'); sy = +f[0]; sm = +f[1]; } else { sy = ey; sm = em; }
     if (keys.length) { var l = keys[keys.length - 1].split('-'); if (+l[0] > ey || (+l[0] === ey && +l[1] > em)) { ey = +l[0]; em = +l[1]; } }
-    var list = [], y = sy, m = sm;
-    while (y < ey || (y === ey && m <= em)) {
-      list.push({ y: y, m: m, t: map[y + '-' + (m < 10 ? '0' + m : m)] || {} });
-      m++; if (m > 12) { m = 1; y++; }
+    var list = [], y = sy, mth = sm;
+    while (y < ey || (y === ey && mth <= em)) {
+      list.push({ y: y, m: mth, t: map[y + '-' + pad2(mth)] || {} });
+      mth++; if (mth > 12) { mth = 1; y++; }
     }
     return list;
   }
 
+  /* 今週（日曜はじまり）のトレ回数。ヘッダーの週ドットにも使う。 */
+  function weekStatus() {
+    var now = new Date();
+    var wstart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+    var cnt = 0;
+    (D.attendance || []).forEach(function (a) {
+      var p = a.date.split('-');
+      var d = new Date(+p[0], +p[1] - 1, +p[2]);
+      if (d >= wstart && d <= now) cnt++;
+    });
+    return { count: cnt, left: Math.max(0, 3 - cnt) };
+  }
+
+  function renderWeekchip() {
+    var w = weekStatus(), dots = '';
+    for (var i = 0; i < 3; i++) dots += '<span class="d' + (i < w.count ? ' on' : '') + '"></span>';
+    document.getElementById('weekchip').innerHTML =
+      '<span class="wk-t">今週</span><span class="dots">' + dots + '</span>'
+      + (w.left > 0 ? '<span>あと<b>' + w.left + '</b>回</span>' : '<b>週3達成</b>');
+  }
+
   function calShell() {
-    return '<section class="cal">'
-      + '<span class="kicker">Continuity ・ つづけた記録</span>'
-      + programProgress()
-      + '<div class="cal-nav"><button onclick="calStep(-1)" aria-label="前の月" id="cal-prev">‹</button>'
+    return '<section class="card">'
+      + '<span class="kicker">Continuity <span class="jp">・ つづけた記録</span></span>'
+      + '<div class="cal-nav" style="margin-top:8px"><button onclick="calStep(-1)" aria-label="前の月" id="cal-prev">‹</button>'
       + '<div><span class="mlabel" id="cal-mlabel"></span><span class="mlatin" id="cal-mlatin"></span></div>'
       + '<button onclick="calStep(1)" aria-label="次の月" id="cal-next">›</button></div>'
       + '<div class="cal-week" id="cal-week" style="display:none"></div>'
       + '<div class="cal-dow"><span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span></div>'
       + '<div class="cal-grid" id="cal-grid"></div>'
       + '<div class="cal-legend">'
-      + '<span><span class="sw" style="background:#EAD7CF"></span>行った日</span>'
-      + '<span><span class="sw" style="border:2px solid var(--oxblood)"></span>今日</span>'
-      + '<span style="color:var(--ink-faint)">上＝上半身 / 下＝下半身</span></div>'
+      + '<span><span class="sw" style="background:#F0DFD4"></span>行った日</span>'
+      + '<span><span class="sw" style="border:2px solid var(--ox)"></span>今日</span>'
+      + '<span style="color:var(--faint)">上＝上半身 / 下＝下半身</span></div>'
       + '<div class="cal-stats" id="cal-stats"></div></section>';
   }
 
@@ -642,10 +1420,10 @@
     document.getElementById('cal-prev').style.visibility = CAL.idx > 0 ? 'visible' : 'hidden';
     document.getElementById('cal-next').style.visibility = CAL.idx < CAL.months.length - 1 ? 'visible' : 'hidden';
 
-    var g = '', pad = function (x) { return x < 10 ? '0' + x : '' + x; };
+    var g = '';
     for (var i = 0; i < lead; i++) g += '<div></div>';
     for (var d = 1; d <= days; d++) {
-      var part = o.t[d], isToday = isCur && d === todayD, ds = o.y + '-' + pad(o.m) + '-' + pad(d);
+      var part = o.t[d], isToday = isCur && d === todayD, ds = o.y + '-' + pad2(o.m) + '-' + pad2(d);
       var cls = 'cal-cell' + (part ? ' went' : '') + (isToday ? ' today' : '') + (part && CAL.sel === ds ? ' sel' : '');
       var mk = part ? '<span class="part">' + (part === 'U' ? '上' : '下') + '</span>' : '';
       g += '<div class="' + cls + '"' + (part ? ' onclick="calPick(\'' + ds + '\')"' : '') + '>' + mk + d + '</div>';
@@ -655,16 +1433,15 @@
     var cnt = 0; for (var key in o.t) if (o.t.hasOwnProperty(key)) cnt++;
     var weeks = (isCur ? todayD : days) / 7, avg = (cnt / weeks).toFixed(1);
     document.getElementById('cal-stats').innerHTML =
-      '<div><div class="num">' + cnt + '</div><div class="lbl2">通った 回</div></div>'
-      + '<div><div class="num">' + avg + '</div><div class="lbl2">週平均 回</div></div>';
+      '<div><div class="num">' + cnt + '</div><div class="lbl2">通った回数</div></div>'
+      + '<div><div class="num">' + avg + '</div><div class="lbl2">週平均</div></div>';
 
     var wk = document.getElementById('cal-week');
     if (isCur) {
-      var ws = todayD - now.getDay(), wc = 0;
-      for (var kk in o.t) { var dd = +kk; if (dd >= ws && dd <= ws + 6) wc++; }
-      var dots = ''; for (var j = 0; j < 3; j++) dots += '<span class="dot' + (j < wc ? ' on' : '') + '"></span>';
-      var left = Math.max(0, 3 - wc);
-      wk.innerHTML = '<span>今週</span><span class="dots">' + dots + '</span><span class="left">' + (left > 0 ? 'あと' + left + '回' : '週3達成！') + '</span>';
+      var w = weekStatus(), dots = '';
+      for (var j = 0; j < 3; j++) dots += '<span class="dot' + (j < w.count ? ' on' : '') + '"></span>';
+      wk.innerHTML = '<span>今週</span><span class="dots">' + dots + '</span><span class="left">'
+        + (w.left > 0 ? 'あと' + w.left + '回' : '週3達成') + '</span>';
       wk.style.display = 'flex';
     } else { wk.style.display = 'none'; }
   }
@@ -675,7 +1452,6 @@
     CAL.idx = n; calRender();
   }
 
-  /* 日付 → ログ／出席のひき当て表 */
   var LOGMAP = {}, ATTMAP = {};
   function calBuildMaps() {
     LOGMAP = {}; ATTMAP = {};
@@ -683,7 +1459,6 @@
     (D.attendance || []).forEach(function (a) { ATTMAP[a.date] = a.part; });
   }
 
-  /* カレンダーで選んだ日の詳細をカレンダー下に表示する */
   function calDetail(date) {
     var l = LOGMAP[date], part = ATTMAP[date];
     var name = (l && D.sessions[l.sessionKey]) ? D.sessions[l.sessionKey].name
@@ -700,17 +1475,15 @@
     document.getElementById('cal-detail').innerHTML = h;
   }
 
-  /* カレンダーの日付タップ：選択を移して詳細を出す */
   function calPick(date) {
     CAL.sel = date;
     calRender();
     calDetail(date);
   }
 
-  /* ログタブ＝カレンダー＋（タップで）その日の記録 */
   function buildLog() {
     var h = calShell()
-      + '<span class="kicker" style="display:block;margin-top:26px">Session detail ・ その日の記録</span>'
+      + '<div style="margin-top:20px"><span class="kicker">Session Detail <span class="jp">・ その日の記録</span></span></div>'
       + '<div class="cal-detail" id="cal-detail"></div>';
     document.getElementById('log-sheet').innerHTML = h;
     calBuildMaps();
@@ -722,19 +1495,19 @@
     if (CAL.sel) calDetail(CAL.sel);
   }
 
+  /* =========================================================================
+     10. タブ切替＋横スワイプ（指追従）
+     ========================================================================= */
   var TAB_ORDER = ['program', 'next', 'log'];
   var currentTab = 'next';
   var isTabAnimating = false;
   var tabAnimationTimer = null;
 
   function tabIndex(name) { return TAB_ORDER.indexOf(name); }
-
   function panelByName(name) { return document.getElementById('tab-' + name); }
-
   function prefersReducedMotion() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
-
   function panelX(x) { return 'translate3d(' + x + 'px, 0, 0)'; }
 
   function setTabButton(name) {
@@ -771,7 +1544,6 @@
     panel.classList.remove('slide-anim');
   }
 
-  /* タブ切替 */
   function showTab(name) {
     if (TAB_ORDER.indexOf(name) === -1) name = 'next';
     if (name === currentTab && panelByName(name).classList.contains('show')) return;
@@ -815,18 +1587,12 @@
     window.scrollTo(0, 0);
   }
 
-  function stepTab(dir) {
-    var i = TAB_ORDER.indexOf(currentTab);
-    if (i === -1) i = 1;
-    var next = Math.max(0, Math.min(TAB_ORDER.length - 1, i + dir));
-    if (next !== i) showTab(TAB_ORDER[next]);
-  }
-
+  /* スワイプを遮る要素：タブバー・タイマー・シート・実績ステッパー・フォーム類。
+     セット行やアコーディオンの上でもスワイプできる（タップとは移動量10pxで区別）。 */
   function isSwipeBlockedTarget(el) {
-    return !!(el && el.closest && el.closest('.tabbar, button, a, input, textarea, select, [onclick], [role="button"]'));
+    return !!(el && el.closest && el.closest('.tabbar, .rest, .veil, .act, a, input, textarea, select'));
   }
 
-  /* 横スワイプでタブを移動。縦スクロールと誤爆しないよう、横移動が明確な時だけ反応する。 */
   function setupSwipeTabs() {
     var main = document.querySelector('main'), swipe = null, raf = 0;
     if (!main) return;
@@ -865,20 +1631,10 @@
       var idx = tabIndex(currentTab);
       if (idx === -1) return;
       swipe = {
-        id: id,
-        startX: x,
-        startY: y,
-        dx: 0,
-        width: 0,
-        fromName: currentTab,
-        fromIndex: idx,
-        fromPanel: panelByName(currentTab),
-        toName: null,
-        toPanel: null,
-        dir: 0,
-        edge: false,
-        horizontal: false,
-        vertical: false,
+        id: id, startX: x, startY: y, dx: 0, width: 0,
+        fromName: currentTab, fromIndex: idx, fromPanel: panelByName(currentTab),
+        toName: null, toPanel: null, dir: 0, edge: false,
+        horizontal: false, vertical: false, captured: false,
         samples: [{ x: x, t: nowMs() }]
       };
     }
@@ -989,13 +1745,16 @@
         if (swipe && e.pointerId !== swipe.id) { cancelSwipe(); return; }
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         startSwipe(e.clientX, e.clientY, e.target, e.pointerId);
-        if (swipe && main.setPointerCapture) {
-          try { main.setPointerCapture(e.pointerId); } catch (err) {}
-        }
+        /* ここでは capture しない：pointerdown 直後に capture すると、
+           セット行などボタンへの通常クリックが main に吸われて反応しなくなるため。
+           横スワイプと確定した瞬間（下の pointermove）で初めて capture する。 */
       }, { passive: true });
       main.addEventListener('pointermove', function (e) {
         if (!swipe || e.pointerId !== swipe.id) return;
         moveSwipe(e.clientX, e.clientY, e);
+        if (swipe && swipe.horizontal && !swipe.captured && main.setPointerCapture) {
+          try { main.setPointerCapture(e.pointerId); swipe.captured = true; } catch (err) {}
+        }
       }, { passive: false });
       main.addEventListener('pointerup', function (e) {
         if (!swipe || e.pointerId !== swipe.id) return;
@@ -1056,10 +1815,14 @@
     if (!open) { b.classList.add('open'); document.getElementById('rh-' + k).classList.add('open'); }
   }
 
-  /* 起動 */
+  /* =========================================================================
+     11. 起動
+     ========================================================================= */
+  runLoad();
   buildNext();
   buildProgram();
   buildLog();
+  renderWeekchip();
   setupSwipeTabs();
   var start = 'next';
   try { start = sessionStorage.getItem('ks_tab') || D.meta.defaultTab || 'next'; } catch (e) { start = D.meta.defaultTab || 'next'; }

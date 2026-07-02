@@ -411,13 +411,17 @@ window.KINTORE_DATA = {
   ],
 
   /* 体組成（InBody）の推移。骨格筋量(kg)↑・体脂肪率(%)↓で逆三角の進み具合を見る。
-     ★本人が「公開OK（血液検査等はNG）」と判断した基本指標のみ。測定のたびに1行追加。 */
+     ★InBody帳票の測定指標は公開OK（2026-07-02 本人許可。血液検査などの医療データはNG）。
+     一次資料は InBodyデータ/ のCSV。測定のたびにCSV→ここへ1行追記する。
+     キー: weight体重 muscle骨格筋量 fat体脂肪率 scoreInBody点数 bmr基礎代謝(kcal) waist腹囲(cm)
+           armR/armL/trunk/legR/legL＝部位別筋肉量(kg)。無い回は省略してよい（表示側がnull対応）。
+     ※2024-02のH20N測定2回は機種が古く筋肉量の互換性が低いため省略（CSVには残っている）。 */
   inbody: [
-    { date: "2025-10-08", weight: 78.6, muscle: 36.5, fat: 19.0 },
-    { date: "2026-01-27", weight: 76.0, muscle: 36.1, fat: 16.7 },
-    { date: "2026-02-27", weight: 78.5, muscle: 37.4, fat: 17.3 },
-    { date: "2026-05-05", weight: 79.8, muscle: 38.8, fat: 15.3 },
-    { date: "2026-06-04", weight: 81.3, muscle: 37.2, fat: 19.9 },
+    { date: "2025-10-08", weight: 78.6, muscle: 36.5, fat: 19.0, score: 83, bmr: 1744, waist: 88.3, armR: 3.61, armL: 3.67, trunk: 28.4, legR: 9.59, legL: 9.68 },
+    { date: "2026-01-27", weight: 76.0, muscle: 36.1, fat: 16.7, score: 85, bmr: 1738, waist: 86.5, armR: 3.69, armL: 3.73, trunk: 28.5, legR: 9.33, legL: 9.40 },
+    { date: "2026-02-27", weight: 78.5, muscle: 37.4, fat: 17.3, score: 86, bmr: 1772, waist: 86.9, armR: 3.72, armL: 3.79, trunk: 28.9, legR: 9.82, legL: 9.84 },
+    { date: "2026-05-05", weight: 79.8, muscle: 38.8, fat: 15.3, score: 90, bmr: 1830, waist: 85.4, armR: 3.87, armL: 3.99, trunk: 29.8, legR: 9.93, legL: 9.94 },
+    { date: "2026-06-04", weight: 81.3, muscle: 37.2, fat: 19.9, score: 84, bmr: 1776, waist: 87.0, armR: 3.60, armL: 3.69, trunk: 28.4, legR: 10.09, legL: 10.15 },
     { date: "2026-06-30", weight: 82.3, muscle: 38.5, fat: 18.9 }
   ]
 };

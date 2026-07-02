@@ -4,8 +4,8 @@
   "start_url": "./next-session.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F4EFE6",
-  "theme_color": "#7C2A22",
+  "background_color": "#F3EDE2",
+  "theme_color": "#F3EDE2",
   "icons": [
     {
       "src": "./icon-card-192.png",
