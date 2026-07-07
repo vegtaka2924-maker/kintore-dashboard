@@ -22,10 +22,24 @@ function build() {
   const srcFiles = fs.readdirSync(path.join(ROOT, 'src')).filter(f => f.endsWith('.js'));
   for (const f of srcFiles) copy(path.join(ROOT, 'src', f), path.join(OUT, 'src', f));
 
-  // 2b) next-session.html（トレーニングごとに作戦カードを更新する。存在する場合のみコピー）
+  // 2b) next-session.html（土台＝シェル。中身は持たず、下の紙／鉄スキンを iframe で重ねて
+  //     クロスフェード切替する入口ページ。スマホのブックマークはこのURLのまま。存在時のみコピー）
   const nextSessionSrc = path.join(ROOT, 'next-session.html');
   if (fs.existsSync(nextSessionSrc)) {
     copy(nextSessionSrc, path.join(OUT, 'next-session.html'));
+  }
+
+  // 2b-2) skin-paper.html（紙＝生成りスキンの本体。土台が iframe で読み込む）
+  const paperSkinSrc = path.join(ROOT, 'skin-paper.html');
+  if (fs.existsSync(paperSkinSrc)) {
+    copy(paperSkinSrc, path.join(OUT, 'skin-paper.html'));
+  }
+
+  // 2b-3) next-session-iron.html（鉄＝IRON GAUGE スキンの本体。土台が iframe で読み込む。
+  //       データは紙と同じ src/data.js を読むので中身は常に同一。トグルで localStorage に記憶）
+  const ironSrc = path.join(ROOT, 'next-session-iron.html');
+  if (fs.existsSync(ironSrc)) {
+    copy(ironSrc, path.join(OUT, 'next-session-iron.html'));
   }
 
   // 2c) カードを「ホーム画面アプリ（PWA）」として開くための設定とアイコン、
