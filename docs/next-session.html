@@ -471,9 +471,25 @@
   .psheet .prow .warn { color: var(--sand); font-size: 12px; }
   .psheet .pnote { font-size: 11.5px; color: var(--faint); margin-top: 10px; line-height: 1.7; }
 
+  /* ---------- スクロール演出（v3・2026-07 追加） ----------
+     方針：飾りではなく「読み進みに画面が呼応する」ためのもの。
+     ・出現は1要素1回だけ（うるさくしない）
+     ・JSが動かない環境・reduced-motion設定では、素の表示のまま何も起きない */
+  #scrollbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60;
+    background: linear-gradient(90deg, #9A3A2E, var(--ox), var(--ox-deep));
+    transform-origin: 0 50%; transform: scaleX(0); pointer-events: none; }
+  .fx { opacity: 0; transform: translateY(18px); }
+  .fx.in { opacity: 1; transform: none;
+    transition: opacity .65s cubic-bezier(.22,.61,.36,1), transform .65s cubic-bezier(.22,.61,.36,1); }
+  .topbar { transition: box-shadow .35s; }
+  .topbar.scrolled { box-shadow: 0 8px 24px rgba(74, 58, 38, .12); }
+  .hero-name { will-change: transform; }
+
   @media (prefers-reduced-motion: reduce) {
     .panel.slide-anim, .run-fill, .rest-fill { transition: none; }
     .psheet { animation: none; }
+    .fx { opacity: 1; transform: none; }
+    #scrollbar { display: none; }
   }
 
   /* 折りたたみスマホ（閉じた縦長画面）向け微調整 */
@@ -1816,6 +1832,112 @@
   }
 
   /* =========================================================================
+     10.5 スクロール演出（v3）
+     ・カードが視界に入ったら1回だけ「ふわっと出現」＋中の数字・バー・線を動かす
+     ・上端の進捗バー／ヒーロー名の視差は scroll イベント（rAFで間引き）
+     ・IntersectionObserver が無い環境や reduced-motion では何もしない（素の表示）
+     ========================================================================= */
+  var FX = { io: null, on: false };
+
+  /* 数字を0から巻き上げる。最初のテキストノードだけ差し替え（<small>kg等は保持） */
+  function countUp(el) {
+    if (el.getAttribute('data-fxc')) return;
+    el.setAttribute('data-fxc', '1');
+    var node = el.firstChild;
+    if (!node || node.nodeType !== 3) return;
+    var txt = node.nodeValue, m = txt.match(/^(\d+(?:\.\d+)?)/);
+    if (!m || !+m[1]) return;
+    var target = +m[1], dec = (m[1].split('.')[1] || '').length, t0 = 0;
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var k = Math.min(1, (ts - t0) / 850);
+      k = 1 - Math.pow(1 - k, 3);  /* ease-out：最後ほどゆっくり */
+      node.nodeValue = (target * k).toFixed(dec);
+      if (k < 1) requestAnimationFrame(step); else node.nodeValue = txt;
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* カード出現時：巻き戻しておいたバー・リング・スパークラインを本来の値まで動かす */
+  function fxAnimateInside(c) {
+    c.querySelectorAll('[data-fxw]').forEach(function (b) {
+      b.style.transition = 'width 1s cubic-bezier(.22,.61,.36,1) .15s';
+      requestAnimationFrame(function () { b.style.width = b.getAttribute('data-fxw'); });
+    });
+    c.querySelectorAll('[data-fxo]').forEach(function (p) {
+      p.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.22,.61,.36,1) .1s';
+      requestAnimationFrame(function () { p.setAttribute('stroke-dashoffset', p.getAttribute('data-fxo')); });
+    });
+    c.querySelectorAll('[data-fxd]').forEach(function (p) {
+      p.style.transition = 'stroke-dashoffset 1.2s ease .25s';
+      requestAnimationFrame(function () { p.style.strokeDashoffset = '0'; });
+    });
+    c.querySelectorAll('.rv-num, .ib-hc .v, .ib-gauge .gn, .cal-stats .num, .ring .c b, .gv b').forEach(countUp);
+  }
+
+  function fxOnEnter(entries) {
+    entries.forEach(function (en, i) {
+      if (!en.isIntersecting) return;
+      var el = en.target;
+      FX.io.unobserve(el);  /* 出現は1回だけ */
+      el.style.transitionDelay = Math.min(i * 70, 280) + 'ms';  /* 同時に入った分は時間差で */
+      el.classList.add('in');
+      setTimeout(function () { el.style.transitionDelay = ''; }, 1000);
+      fxAnimateInside(el);
+    });
+  }
+
+  /* カードに .fx を付け、中のバー・リング・線の「到達値」を覚えて0に巻き戻す */
+  function fxPrepare(root) {
+    if (!FX.on || !root) return;
+    root.querySelectorAll('.card, .head-plain').forEach(function (c) {
+      if (c.classList.contains('fx')) return;
+      c.classList.add('fx');
+      c.querySelectorAll('.grow-fill, .seg-fill, .ib-gauge .gtrack i').forEach(function (b) {
+        b.setAttribute('data-fxw', b.style.width); b.style.width = '0%';
+      });
+      c.querySelectorAll('.ring .pr').forEach(function (p) {
+        p.setAttribute('data-fxo', p.getAttribute('stroke-dashoffset'));
+        p.setAttribute('stroke-dashoffset', p.getAttribute('stroke-dasharray'));
+      });
+      c.querySelectorAll('.spark path[fill="none"]').forEach(function (p) {
+        var L = 0; try { L = p.getTotalLength(); } catch (e) {}
+        if (L) { p.style.strokeDasharray = L; p.style.strokeDashoffset = L; p.setAttribute('data-fxd', '1'); }
+      });
+      FX.io.observe(c);
+    });
+  }
+
+  function fxSetup() {
+    if (prefersReducedMotion() || !('IntersectionObserver' in window)) return;
+    FX.on = true;
+    FX.io = new IntersectionObserver(fxOnEnter, { rootMargin: '0px 0px -9% 0px', threshold: 0.08 });
+    /* 上端の読み進みバー＋トップバーの影＋ヒーロー名の視差（rAFで1フレーム1回に間引く） */
+    var sb = document.createElement('div'); sb.id = 'scrollbar'; document.body.appendChild(sb);
+    var topbar = document.querySelector('.topbar'), ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        var doc = document.documentElement;
+        var max = Math.max(1, doc.scrollHeight - window.innerHeight);
+        sb.style.transform = 'scaleX(' + Math.min(1, window.scrollY / max).toFixed(4) + ')';
+        topbar.classList.toggle('scrolled', window.scrollY > 6);
+        var hn = document.querySelector('.panel.show .hero-name');
+        if (hn) {
+          /* ヒーロー名だけ少し遅れて動く＝奥行き。動きは最大22pxで控えめに、薄くなって消える */
+          var y = Math.min(22, window.scrollY * 0.13);
+          hn.style.transform = 'translateY(' + y.toFixed(1) + 'px)';
+          hn.style.opacity = Math.max(0.25, 1 - window.scrollY / 480).toFixed(3);
+        }
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* =========================================================================
      11. 起動
      ========================================================================= */
   runLoad();
@@ -1824,6 +1946,8 @@
   buildLog();
   renderWeekchip();
   setupSwipeTabs();
+  fxSetup();
+  fxPrepare(document);
   var start = 'next';
   try { start = sessionStorage.getItem('ks_tab') || D.meta.defaultTab || 'next'; } catch (e) { start = D.meta.defaultTab || 'next'; }
   showTab(start);

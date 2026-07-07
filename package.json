@@ -7,8 +7,8 @@
   "scripts": {
     "serve": "node server.cjs",
     "gen-sw": "node gen-sw.cjs",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run --dir tests",
+    "test:watch": "vitest --dir tests",
     "typecheck": "tsc --noEmit",
     "check": "node check-inbody.cjs",
     "release": "node check-inbody.cjs && node build-deploy.cjs"
