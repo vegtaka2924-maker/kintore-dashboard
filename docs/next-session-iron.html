@@ -383,6 +383,19 @@
   .stp button:active { background: var(--org); color: #0C0D0E; border-color: var(--org); }
   .stp b { min-width: 58px; text-align: center; font-family: var(--num); font-size: 15px; font-weight: 700; color: var(--chalk); }
   .stp b.empty { color: var(--faint); font-weight: 500; }
+  /* 実績の数値はタップで手入力できる（点線＝タップできる合図）。＋/−も併用できる。 */
+  .stp b.val { cursor: pointer; border-bottom: 1px dashed var(--line-hi); }
+  .stp b.val:active { color: var(--org); border-color: var(--org); }
+  .stp .val-input { width: 62px; height: 32px; box-sizing: border-box; text-align: center;
+    font-family: var(--num); font-size: 15px; font-weight: 700; color: var(--chalk); background: var(--panel);
+    border: 1px solid var(--org); border-radius: 8px; padding: 0 2px; -moz-appearance: textfield; }
+  .stp .val-input::-webkit-outer-spin-button, .stp .val-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  /* メニュー変更メモ欄（器具が空かず種目を変えた等を自由記入。コピー文にも入る） */
+  .run-memo { display: block; width: 100%; box-sizing: border-box; margin-top: 12px; resize: vertical;
+    font-family: inherit; font-size: 13px; line-height: 1.5; color: var(--chalk); background: var(--panel);
+    border: 1px solid var(--line-hi); border-radius: 8px; padding: 9px 11px; min-height: 42px; }
+  .run-memo::placeholder { color: var(--faint); }
+  .run-memo:focus { outline: none; border-color: var(--org); }
   .act .x2 { color: var(--faint); }
   @media (max-width: 370px) { .act { margin-left: 0; } }
   .s-w.plate { text-decoration: underline dotted var(--faint) 1.5px; text-underline-offset: 5px; }
@@ -618,7 +631,7 @@
        ★キーと形式は生成り版と完全互換（ksRun:日付:currentKey ＝ {d:[…], a:{…}}）。
          こうしておくと、ジムの途中でデザインを切り替えてもチェック状態が引き継がれる。 ---------- */
   var RUN_KEY = 'ksRun:' + todayStr() + ':' + D.currentKey;
-  var RUN = { done: {}, act: {}, total: 0 };
+  var RUN = { done: {}, act: {}, total: 0, memo: '' };
   var SETINFO = {};   /* sid → { ex, label, weightText, weightKg, upper, amrap } */
   var SID = 0;
 
@@ -636,12 +649,15 @@
         var o = JSON.parse(raw);
         (o.d || []).forEach(function (id) { RUN.done[id] = true; });
         RUN.act = o.a || {};
+        RUN.memo = o.m || '';
       }
     } catch (e) {}
   }
   function runSave() {
-    try { localStorage.setItem(RUN_KEY, JSON.stringify({ d: Object.keys(RUN.done), a: RUN.act })); } catch (e) {}
+    try { localStorage.setItem(RUN_KEY, JSON.stringify({ d: Object.keys(RUN.done), a: RUN.act, m: RUN.memo || '' })); } catch (e) {}
   }
+  /* メニュー変更メモの保存（入力のたびに呼ばれる） */
+  function memoSave(v) { RUN.memo = v; runSave(); }
   function runCount() { return Object.keys(RUN.done).length; }
 
   /* ---------- プレート計算（バーベル種目の重量タップで内訳） ---------- */
@@ -753,16 +769,55 @@
     if (info.weightKg != null) {
       var w = (a.w != null) ? a.w : info.weightKg;
       h += '<span class="stp"><button onclick="actAdj(\'' + id + '\',\'w\',-1)" aria-label="重量を減らす">−</button>'
-        + '<b>' + (+w) + 'kg</b>'
+        + '<b class="val" tabindex="0" role="button" onclick="actEdit(this,\'' + id + '\',\'w\')" aria-label="重量をタップして入力">' + (+w) + 'kg</b>'
         + '<button onclick="actAdj(\'' + id + '\',\'w\',1)" aria-label="重量を増やす">＋</button></span>';
     } else if (info.weightText) {
       h += '<b style="font-size:13px">' + info.weightText + '</b>';
     }
     h += '<span class="x2">×</span>';
     h += '<span class="stp"><button onclick="actAdj(\'' + id + '\',\'r\',-1)" aria-label="回数を減らす">−</button>'
-      + (a.r != null ? '<b>' + a.r + '回</b>' : '<b class="empty">回数？</b>')
+      + (a.r != null
+          ? '<b class="val" tabindex="0" role="button" onclick="actEdit(this,\'' + id + '\',\'r\')" aria-label="回数をタップして入力">' + a.r + '回</b>'
+          : '<b class="val empty" tabindex="0" role="button" onclick="actEdit(this,\'' + id + '\',\'r\')" aria-label="回数をタップして入力">回数？</b>')
       + '<button onclick="actAdj(\'' + id + '\',\'r\',1)" aria-label="回数を増やす">＋</button></span>';
     el.innerHTML = h;
+  }
+
+  /* 数値（重量・回数）をタップ → その場で入力欄に切り替えて手入力する（＋/−ボタンはそのまま残る）。
+     Enter か フォーカスを外すと確定。回数を空欄で確定すると「未記録」に戻す。Escで取り消し。 */
+  function actEdit(el, id, kind) {
+    var info = SETINFO[id] || {}, a = actOf(id);
+    var cur = (kind === 'w') ? (a.w != null ? a.w : (info.weightKg != null ? info.weightKg : ''))
+                             : (a.r != null ? a.r : '');
+    var inp = document.createElement('input');
+    inp.type = 'number'; inp.inputMode = 'decimal'; inp.className = 'val-input';
+    inp.value = (cur === '' ? '' : cur);
+    inp.step = (kind === 'w' ? '0.5' : '1');
+    inp.min = '0';
+    inp.setAttribute('aria-label', kind === 'w' ? '重量(kg)を入力' : '回数を入力');
+    el.replaceWith(inp);
+    inp.focus();
+    try { inp.select(); } catch (e) {}
+    var done = false;
+    function commit() {
+      if (done) return; done = true;
+      var raw = String(inp.value).trim();
+      if (raw === '') {
+        if (kind === 'r') delete a.r;              // 回数は空欄なら未記録に戻す（重量は変更しない）
+      } else {
+        var v = parseFloat(raw);
+        if (!isNaN(v)) {
+          if (kind === 'w') a.w = Math.max(0, +v.toFixed(2));
+          else a.r = Math.max(1, Math.round(v));
+        }
+      }
+      runSave(); renderAct(id);
+    }
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+      else if (e.key === 'Escape') { done = true; renderAct(id); }
+    });
   }
 
   function exercisePanel(ex, checkable) {
@@ -858,6 +913,7 @@
       + '<div class="segs" id="segs"></div>'
       + '<div class="run-msg">ALL SETS COMPLETE ── 今日も一枚、確実に厚くなった。</div>'
       + '<div class="run-tape tape"></div>'
+      + '<textarea class="run-memo" id="runMemo" rows="2" placeholder="メモ（器具が空かず種目を変えた・調子など。コピーにも入ります）" oninput="memoSave(this.value)"></textarea>'
       + '<div class="run-actions">'
       + '<button class="copybtn" id="copyBtn" onclick="copyReport()" disabled>Copy Report</button>'
       + '<span class="copy-note" id="copyNote">コピーした文をClaudeに貼ると、そのままトレ報告になります。</span>'
@@ -900,6 +956,7 @@
     document.getElementById('runT').textContent = RUN.total;
     /* 復元したチェック済みセットの実績欄を描き直す */
     Object.keys(RUN.done).forEach(function (id) { renderAct(id); });
+    var memoEl = document.getElementById('runMemo'); if (memoEl) memoEl.value = RUN.memo || '';
     updateRunUI();
   }
 
@@ -967,6 +1024,7 @@
       lines.push('・' + ex + '：' + parts.join('｜') + (undone.length ? '（' + undone.join('・') + ' 未実施）' : ''));
     });
     if (skipped.length) lines.push('・未実施：' + skipped.join('、'));
+    if (RUN.memo && RUN.memo.trim()) lines.push('・メモ：' + RUN.memo.trim());
     lines.push('※「×?」は回数メモなし。セッションカードのチェックから自動生成。');
     return lines.join('\n');
   }
