@@ -157,6 +157,11 @@
   .coach-bubble .coach-h { color: var(--ox); font-weight: 700; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; margin-top: 13px; }
   .coach-bubble .coach-h::before { content: "— "; }
   .coach-bubble .coach-h + p { margin-top: 3px; }
+  .coach-exercise-list { margin-top: 14px; border-top: 1px solid var(--border); }
+  .coach-exercise { padding-top: 10px; }
+  .coach-exercise + .coach-exercise { margin-top: 10px; border-top: 1px solid var(--border); }
+  .coach-exercise-name { color: var(--ox); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+  .coach-exercise p { margin-top: 2px; }
 
   /* ---------- 種目カード ---------- */
   .ex { padding: 16px; }
@@ -611,12 +616,18 @@
      1. コーチ（kaikaiくん）吹き出し ※データ形式は従来と互換
      ========================================================================= */
   var COACH_AVATAR = '<img src="coach-kaikai.png" width="46" height="46" alt="" aria-hidden="true">';
-  function coachBlock(text) {
+  function coachBlock(text, exerciseReviews) {
     var items = Array.isArray(text) ? text : [text];
     var body = items.map(function (it) {
       if (it && typeof it === 'object') return '<p class="coach-h">' + it.h + '</p><p>' + it.p + '</p>';
       return '<p>' + it + '</p>';
     }).join('');
+    if (Array.isArray(exerciseReviews) && exerciseReviews.length) {
+      body += '<div class="coach-exercise-list"><p class="coach-h">実施メニューごと</p>'
+        + exerciseReviews.map(function (r) {
+          return '<div class="coach-exercise"><div class="coach-exercise-name">' + r.name + '</div><p>' + r.p + '</p></div>';
+        }).join('') + '</div>';
+    }
     return '<div class="card coach"><div class="coach-av">' + COACH_AVATAR + '</div>'
       + '<div class="coach-bubble"><div class="coach-name">kaikaiくん</div>' + body + '</div></div>';
   }
@@ -1636,7 +1647,7 @@
     if (l) {
       if (l.highlights) h += '<p class="cal-det-hl">' + l.highlights + '</p>';
       if (l.detail) h += '<div class="log-detail">' + l.detail + '</div>';
-      if (l.coach) h += coachBlock(l.coach);
+      if (l.coach) h += coachBlock(l.coach, l.exerciseReviews);
     } else {
       h += '<p class="cal-det-none">この日はジムに通った記録のみ（詳細メモはありません）。</p>';
     }

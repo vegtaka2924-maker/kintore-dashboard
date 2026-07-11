@@ -120,6 +120,23 @@ if (tlog.length && Array.isArray(D.rotation) && D.rotation.length) {
   for (const r of tlog) {
     if (!att.has(r.date)) dataProblems.push('attendance に ' + r.date + ' が無い（カレンダーへの追加忘れ）');
   }
+  // (4) kaikaiくんは、実施したメニューを種目ごとに必ずコメントする。
+  //     detail は自由文なので種目数の自動推定はせず、ログ入力時に exerciseReviews を明示する。
+  //     この欄がない公開を止め、総評だけで種目が埋もれる事故を防ぐ。
+  const reviewStart = D.meta && D.meta.coachExerciseReviewRequiredFrom;
+  if (reviewStart) {
+    for (const r of tlog.filter((x) => x.date >= reviewStart)) {
+      if (!Array.isArray(r.exerciseReviews) || !r.exerciseReviews.length) {
+        dataProblems.push('log[' + r.date + '] に exerciseReviews が無い（実施メニューごとのkaikaiくんコメントを追加）');
+        continue;
+      }
+      r.exerciseReviews.forEach((review, i) => {
+        if (!review || !review.name || !review.p) {
+          dataProblems.push('log[' + r.date + '].exerciseReviews[' + i + '] が不完全（name と p が必要）');
+        }
+      });
+    }
+  }
 }
 
 // --- 4) 差分を出す -----------------------------------------------------------
