@@ -14,6 +14,14 @@
 !/gen-sw.cjs
 !/gen-icons.cjs
 !/build-deploy.cjs
+!/check-inbody.cjs
+!/next-session.html
+!/skin-paper.html
+!/card.webmanifest
+!/icon-card.svg
+!/icon-card-192.png
+!/icon-card-512.png
+!/coach-kaikai.png
 !/start-gym.cmd
 !/package.json
 !/package-lock.json

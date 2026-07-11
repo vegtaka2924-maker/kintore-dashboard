@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- ホーム画面アイコン。クリーム地（Claude配色）＋コーラルの「逆三角形の体」。
+       頭・首・広い肩から細い腰へ。中心の安全領域に収め、丸く切り抜かれても欠けないようにする。
+       PNG版（icon-card-192/512.png）は gen-icons.cjs がこの図形から生成する。 -->
+  <rect width="192" height="192" rx="42" fill="#EDE7DA"/>
+  <g fill="#CC785C">
+    <circle cx="96" cy="46" r="17"/>
+    <rect x="87" y="58" width="18" height="16"/>
+    <path d="M50 80 Q96 66 142 80 L118 152 Q96 158 74 152 Z"/>
+  </g>
+</svg>

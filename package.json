@@ -11,7 +11,7 @@
     "test:watch": "vitest --dir tests",
     "typecheck": "tsc --noEmit",
     "check": "node check-inbody.cjs",
-    "release": "node check-inbody.cjs && node build-deploy.cjs"
+    "release": "npm test && npm run typecheck && node check-inbody.cjs && node build-deploy.cjs"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

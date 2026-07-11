@@ -22,8 +22,8 @@ function build() {
   const srcFiles = fs.readdirSync(path.join(ROOT, 'src')).filter(f => f.endsWith('.js'));
   for (const f of srcFiles) copy(path.join(ROOT, 'src', f), path.join(OUT, 'src', f));
 
-  // 2b) next-session.html（土台＝シェル。中身は持たず、下の紙／鉄スキンを iframe で重ねて
-  //     クロスフェード切替する入口ページ。スマホのブックマークはこのURLのまま。存在時のみコピー）
+  // 2b) next-session.html（土台＝シェル。生成り版を iframe で読み込む入口ページ。
+  //     スマホのブックマークはこのURLのまま。存在時のみコピー）
   const nextSessionSrc = path.join(ROOT, 'next-session.html');
   if (fs.existsSync(nextSessionSrc)) {
     copy(nextSessionSrc, path.join(OUT, 'next-session.html'));
@@ -33,13 +33,6 @@ function build() {
   const paperSkinSrc = path.join(ROOT, 'skin-paper.html');
   if (fs.existsSync(paperSkinSrc)) {
     copy(paperSkinSrc, path.join(OUT, 'skin-paper.html'));
-  }
-
-  // 2b-3) next-session-iron.html（鉄＝IRON GAUGE スキンの本体。土台が iframe で読み込む。
-  //       データは紙と同じ src/data.js を読むので中身は常に同一。トグルで localStorage に記憶）
-  const ironSrc = path.join(ROOT, 'next-session-iron.html');
-  if (fs.existsSync(ironSrc)) {
-    copy(ironSrc, path.join(OUT, 'next-session-iron.html'));
   }
 
   // 2c) カードを「ホーム画面アプリ（PWA）」として開くための設定とアイコン、
@@ -120,6 +113,7 @@ function validateData(file) {
     if (!s.name || !s.exercises || !s.exercises.length) { errs.push(k + ': name か exercises が空'); continue; }
     s.exercises.forEach((ex, idx) => {
       const where = k + ' 種目' + (idx + 1) + '(' + (ex.name || '?') + ')';
+      if (!['必須', '補助', '余力'].includes(ex.priority)) errs.push(where + ': priority は 必須／補助／余力 のいずれかが必要');
       if (!ex.why || !String(ex.why).trim()) errs.push(where + ': why が空');
       // sets か subgroups のどちらかに、weight と reps の揃ったセットが必要
       const groups = ex.subgroups ? ex.subgroups.map(g => g.sets) : [ex.sets];
