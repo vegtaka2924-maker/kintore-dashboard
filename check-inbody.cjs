@@ -137,6 +137,32 @@ if (tlog.length && Array.isArray(D.rotation) && D.rotation.length) {
       });
     }
   }
+  // (5) 「前回」欄の更新漏れを止める。カードごとの last は log と別管理なので、
+  //     空のままでも画面は壊れず、ユーザーだけが前回実績を見られなくなるため。
+  for (const [sessionKey, session] of Object.entries(D.sessions || {})) {
+    for (const ex of (session.exercises || [])) {
+      if (!ex.last || !String(ex.last).trim()) {
+        dataProblems.push('sessions.' + sessionKey + ' の「' + (ex.name || ex.no || '?') + '」に last（前回実績）が無い');
+      }
+    }
+
+    // (6) coreSets は「余力でないメインセット」の実数と一致させる。
+    //     表示だけ10セットと書いて、中身が再び17セットへ膨らむ事故を防ぐ。
+    if (typeof session.coreSets === 'number') {
+      let coreWorkSets = 0;
+      for (const ex of (session.exercises || [])) {
+        const groups = Array.isArray(ex.subgroups) ? ex.subgroups : [{ sets: ex.sets || [] }];
+        for (const group of groups) {
+          for (const set of (group.sets || [])) {
+            if (!set.warm && !set.optional && ex.priority !== '余力') coreWorkSets++;
+          }
+        }
+      }
+      if (coreWorkSets !== session.coreSets) {
+        dataProblems.push('sessions.' + sessionKey + '.coreSets(' + session.coreSets + ') と基本メインセット実数(' + coreWorkSets + ')が不一致');
+      }
+    }
+  }
 }
 
 // --- 4) 差分を出す -----------------------------------------------------------

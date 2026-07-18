@@ -209,6 +209,9 @@
   .set.skipped { background: var(--card2); }
   .set.skipped .s-check { border-color: var(--border-hi); color: var(--muted); background: transparent; }
   .set.skipped .s-main, .set.skipped .s-label, .set.skipped .s-rest { opacity: .38; text-decoration: line-through; }
+  /* 余力セットは、未実施でも完遂率を下げない。見た目でも「義務ではない」と分かるようにする。 */
+  .set.optional-set { background: rgba(176,138,69,.05); }
+  .set.optional-set .s-label { color: #8A6A32; }
   .set-skip { min-width: 52px; border: 1px solid var(--border); border-radius: 10px; background: none;
     color: var(--muted); font: 700 10px var(--sans); padding: 0 7px; cursor: pointer; }
   .set-skip.active { border-color: var(--ox); color: var(--ox); background: var(--ox-dim); }
@@ -639,7 +642,7 @@
      ========================================================================= */
   var RUN_KEY = 'ksRun:' + todayStr() + ':' + D.currentKey;
   var RUN = { done: {}, skip: {}, act: {}, extra: [], total: 0, planned: 0, memo: '' };
-  /* セットの静的情報（コピー文の生成に使う）。sid → {ex, label, weightText, weightKg, upper, amrap} */
+  /* セットの静的情報（コピー文・完遂判定に使う）。core=true のメインセットだけで完遂を判定する。 */
   var SETINFO = {};
   var EXINFO = {};
 
@@ -669,12 +672,26 @@
   function memoSave(v) { RUN.memo = v; runSave(); }
   function runCount() { return Object.keys(RUN.done).length; }
   function skipCount() { return Object.keys(RUN.skip).length; }
+  function coreIds() {
+    return Object.keys(SETINFO).filter(function (id) { return SETINFO[id].core; });
+  }
+  function coreDoneCount() {
+    return coreIds().filter(function (id) { return RUN.done[id]; }).length;
+  }
+  function coreSkipCount() {
+    return coreIds().filter(function (id) { return RUN.skip[id]; }).length;
+  }
+  function optionalDoneCount() {
+    return Object.keys(SETINFO).filter(function (id) { return SETINFO[id].optional && RUN.done[id]; }).length;
+  }
 
   function updateRunUI() {
     var box = document.getElementById('runBox');
     if (!box) return;
-    var done = runCount(), skipped = skipCount(), decided = done + skipped, total = RUN.total || 1;
-    document.getElementById('runCount').innerHTML = done + '実施・' + skipped + 'スキップ <small>/ ' + total + '</small>';
+    var done = runCount(), cDone = coreDoneCount(), cSkipped = coreSkipCount();
+    var decided = cDone + cSkipped, total = RUN.total || 1, oDone = optionalDoneCount();
+    document.getElementById('runCount').innerHTML = 'メイン ' + cDone + '実施' + (cSkipped ? '・' + cSkipped + 'スキップ' : '')
+      + ' <small>/ ' + total + '</small>' + (oDone ? ' <small>＋余力' + oDone + '</small>' : '');
     document.getElementById('runFill').style.width = Math.round(decided / total * 100) + '%';
     box.classList.toggle('complete', decided >= total && total > 0);
     document.getElementById('copyBtn').disabled = done === 0;
@@ -695,7 +712,7 @@
     runSave(); updateRunUI();
     if (on) {
       var sec = +btn.getAttribute('data-rest') || 0;
-      var decided = runCount() + skipCount();
+      var decided = coreDoneCount() + coreSkipCount();
       if (sec > 0 && decided < RUN.total) startRest(sec, nextSetLabel(btn));
       else if (decided >= RUN.total) { stopRest(); vibrate([120, 80, 120, 80, 240]); }
     }
@@ -1013,7 +1030,7 @@
   }
 
   var SID = 0; /* セットにふる通し番号（チェック保存のID） */
-  function setRow(s, exName, checkable, fixedId, isExtra) {
+  function setRow(s, exName, checkable, fixedId, isExtra, optionalGroup) {
     var restSec = parseRestSec(s.rest);
     var exPlain = exName.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     var wkg = parseWeightKg(s.weight), bar = wkg != null ? barbellOf(exName) : null;
@@ -1034,14 +1051,17 @@
         + '<span class="s-rest">' + shortRest(s.rest) + '</span></div>';
     }
     var id = fixedId || ('s' + (SID++));
+    var isOptional = !!s.optional || !!optionalGroup || !!isExtra;
     SETINFO[id] = {
       ex: exPlain, label: s.label,
       weightText: s.weight || '', weightKg: wkg,
-      upper: parseUpperReps(s.reps), amrap: /AMRAP/i.test(String(s.reps)), extra: !!isExtra
+      upper: parseUpperReps(s.reps), amrap: /AMRAP/i.test(String(s.reps)), extra: !!isExtra,
+      optional: isOptional,
+      core: !s.warm && !isOptional
     };
     var isDone = !!RUN.done[id];
     var isSkipped = !!RUN.skip[id];
-    var row = '<button type="button" class="set' + (isDone ? ' done' : '') + (isSkipped ? ' skipped' : '')
+    var row = '<button type="button" class="set' + (isDone ? ' done' : '') + (isSkipped ? ' skipped' : '') + (isOptional ? ' optional-set' : '')
       + '" data-sid="' + id + '" data-rest="' + restSec + '" data-ex="' + exPlain + '" data-extra="' + (!!isExtra) + '"'
       + (checkable ? ' onclick="toggleSet(this)"' : '') + '>'
       + '<span class="s-check">✓</span>'
@@ -1059,8 +1079,8 @@
     }
     return row;
   }
-  function setsBlock(sets, exName, checkable) {
-    return '<div class="sets">' + sets.map(function (s) { return setRow(s, exName, checkable); }).join('') + '</div>';
+  function setsBlock(sets, exName, checkable, optionalGroup) {
+    return '<div class="sets">' + sets.map(function (s) { return setRow(s, exName, checkable, null, false, optionalGroup); }).join('') + '</div>';
   }
 
   function lastWorkSet(ex) {
@@ -1077,7 +1097,7 @@
     var info = EXINFO[exKey]; if (!info || !info.base) return;
     var count = RUN.extra.filter(function (x) { return x.key === exKey; }).length + 1;
     var s = JSON.parse(JSON.stringify(info.base));
-    s.label = '追加' + count; s.warm = false; s.accent = false;
+    s.label = '追加' + count; s.warm = false; s.accent = false; s.optional = true;
     RUN.extra.push({ id: 'x:' + exKey + ':' + Date.now(), key: exKey, set: s });
     runSave(); buildNext();
   }
@@ -1088,12 +1108,12 @@
     runSave(); buildNext();
   }
 
-  function extraSetsBlock(exKey, exName, checkable) {
+  function extraSetsBlock(exKey, exName, checkable, buttonLabel) {
     if (!checkable) return '';
     var rows = RUN.extra.filter(function (x) { return x.key === exKey; })
-      .map(function (x) { return setRow(x.set, exName, true, x.id, true); }).join('');
+      .map(function (x) { return setRow(x.set, exName, true, x.id, true, true); }).join('');
     return (rows ? '<div class="sets">' + rows + '</div>' : '')
-      + '<button type="button" class="set-add" onclick="addExtraSet(\'' + exKey + '\')">＋ セットを追加</button>';
+      + '<button type="button" class="set-add" onclick="addExtraSet(\'' + exKey + '\')">' + (buttonLabel || '＋ セットを追加') + '</button>';
   }
 
   function priorityClass(p) {
@@ -1102,7 +1122,7 @@
 
   function renderExercise(ex, checkable, sessionKey) {
     var exKey = (sessionKey || D.currentKey) + '-' + ex.no;
-    EXINFO[exKey] = { name: ex.name, base: lastWorkSet(ex) };
+    if (!ex.subgroups) EXINFO[exKey] = { name: ex.name, base: lastWorkSet(ex) };
     var h = '<article class="card ex"><div class="ex-head"><div class="ex-no">' + ex.no + '</div>'
       + '<div class="ex-titles"><div class="ex-name">' + ex.name + '</div>'
       + (ex.priority ? '<span class="ex-priority ' + priorityClass(ex.priority) + '">' + ex.priority + '</span>' : '')
@@ -1115,16 +1135,22 @@
         + '<span class="arrow">↓ ' + ex.superset.note + '</span></div>';
     }
     if (ex.subgroups) {
-      ex.subgroups.forEach(function (sg) {
-        h += '<div class="subhead">' + sg.subhead + '</div>' + setsBlock(sg.sets, ex.name, checkable);
+      ex.subgroups.forEach(function (sg, sgIndex) {
+        var sgName = sg.exerciseName || ex.name;
+        var sgKey = exKey + '-' + (sg.key || ('group' + sgIndex));
+        EXINFO[sgKey] = { name: sgName, base: lastWorkSet({ sets: sg.sets || [] }) };
+        h += '<div class="subhead">' + sg.subhead + '</div>'
+          + setsBlock(sg.sets, sgName, checkable, ex.priority === '余力')
+          + extraSetsBlock(sgKey, sgName, checkable, '＋ ' + sgName + 'を追加');
         if (sg.tip) h += '<details class="fold tip"><summary>コツ <span class="chev">▾</span></summary><div class="fold-body">' + sg.tip + '</div></details>';
       });
-    } else if (ex.sets) { h += setsBlock(ex.sets, ex.name, checkable); }
-    /* スーパーセットは構成要素を交互に回すため、単独の追加セットは誤記録になる。 */
-    if (!ex.superset) h += extraSetsBlock(exKey, ex.name, checkable);
+    } else if (ex.sets) {
+      h += setsBlock(ex.sets, ex.name, checkable, ex.priority === '余力');
+      h += extraSetsBlock(exKey, ex.name, checkable);
+    }
     var folds = '';
     if (ex.why) folds += '<details class="fold"><summary>なぜこのメニュー？ <span class="chev">▾</span></summary><div class="fold-body">' + ex.why + '</div></details>';
-    if (ex.tip && !ex.subgroups) folds += '<details class="fold tip"><summary>フォームのコツ <span class="chev">▾</span></summary><div class="fold-body">' + ex.tip + '</div></details>';
+    if (ex.tip) folds += '<details class="fold tip"><summary>' + (ex.subgroups ? '進め方' : 'フォームのコツ') + ' <span class="chev">▾</span></summary><div class="fold-body">' + ex.tip + '</div></details>';
     if (folds) h += '<div class="ex-fold">' + folds + '</div>';
     return h + '</article>';
   }
@@ -1153,7 +1179,7 @@
       + '<div class="hero-lede">' + s.lede + '</div>'
       + '<div class="hero-meta">'
       + '<span class="chip">目安 ' + s.minutes + '分</span>'
-      + '<span class="chip">' + s.exercises.length + '種目</span>'
+      + '<span class="chip">' + (s.coreSets ? '基本' + s.coreSets + 'メインセット' : s.exercises.length + '種目') + '</span>'
       + '<span class="chip oxc">' + m.phaseLabel + '</span>'
       + '</div>';
     if (s.payoff && s.payoff.length) {
@@ -1170,7 +1196,7 @@
     return '<section class="card run" id="runBox">'
       + '<div class="run-head"><span class="t">今日の進捗</span><b id="runCount">0</b></div>'
       + '<div class="run-bar"><div class="run-fill" id="runFill"></div></div>'
-      + '<div class="run-msg">全セットを記録しました。実施とスキップを確認して報告しよう。</div>'
+      + '<div class="run-msg">基本メインセットは完遂です。余力セットは未実施でも失敗ではありません。</div>'
       + '<textarea class="run-memo" id="runMemo" rows="2" placeholder="メモ（器具が空かず種目を変えた・調子など。コピーにも入ります）" oninput="memoSave(this.value)"></textarea>'
       + '<div class="run-actions">'
       + '<button class="copybtn" id="copyBtn" onclick="copyReport()" disabled>今日の結果をコピー</button>'
@@ -1203,7 +1229,8 @@
     Object.keys(RUN.done).forEach(function (id) { if (!SETINFO[id]) delete RUN.done[id]; });
     Object.keys(RUN.skip).forEach(function (id) { if (!SETINFO[id]) delete RUN.skip[id]; });
     Object.keys(RUN.act).forEach(function (id) { if (!SETINFO[id]) delete RUN.act[id]; });
-    RUN.total = document.querySelectorAll('#next-sheet .set[data-sid]').length;
+    /* ウォームアップ・余力・追加は分母にせず、基本メインセットだけで完遂を判定する。 */
+    RUN.total = coreIds().length;
     RUN.planned = document.querySelectorAll('#next-sheet .set[data-sid][data-extra="false"]').length;
     /* 復元したチェック済みセットの実績表示を描き直す */
     Object.keys(RUN.done).forEach(function (id) { renderAct(id); });
